@@ -4,7 +4,7 @@
 
 ## 图片
 
-- [新版八条全文图](../assets/principles-desktop.png)：1480 × 894，适合横向分享。
+- [新版八条全文图](../assets/principles-desktop.png)：1480 × 950，逐条附痛点注解，适合横向分享。
 - [新版八条全文竖图](../assets/principles-mobile.png)：900 × 1380，适合手机阅读与小红书配图。
 - [主动汇报](../assets/records/progress-mobile.png)、[完整八条](../assets/records/eight_principles-mobile.png)、[额度收尾](../assets/records/quota_closeout-mobile.png)：2026-10-29 实际项目的原文排版，须保留原文与节选标记。
 - 同目录保留 SVG 源文件，文字可编辑，不必重新生成整张图。
