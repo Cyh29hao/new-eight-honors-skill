@@ -47,6 +47,8 @@ python .agents/skills/eight-honors/scripts/check_codex_quota.py --json
 
 Five-hour allowance at or below 30% triggers closeout. Weekly allowance at or below 30% is a notice; weekly exhaustion requires closeout. Unavailable or unrecognized data returns `UNKNOWN`.
 
+The default 30% reserve reflects the author's Plus workflow: leave room to inspect the result, give feedback, and complete further conversation turns instead of reaching the limit with unfinished work. It is a personal default, not a platform requirement or a measured optimum. Users may explicitly choose another threshold, such as 10%.
+
 `codex_quota_workflow.py` offers live stage advice, atomic checkpoint saves, and historical readback. **`resume` never runs commands. No automatic wakeup scheduler is bundled.** Actual continuation needs user authorization and a verified host mechanism. These helpers advise the agent; they do not intercept every model request or guarantee delivery after a sudden failure.
 
 Choose a model that reliably follows instructions and uses your tools. Files, shell, visual inspection, quota access, and scheduling are separate host capabilities. Other Agent Skills hosts can reuse the instructions, but cross-host behavior has not been certified. See [validation](docs/validation.md), [customization](docs/customization.md), and [sources](docs/provenance.md).
