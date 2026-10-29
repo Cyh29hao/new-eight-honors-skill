@@ -26,6 +26,8 @@ python -m unittest discover -s tests -v
 
 发布前检查 `SKILL.md` frontmatter、内部文件链接、UTF-8 中文，以及 Codex 的界面元数据。Windows 调用官方 quick_validate 时使用 `python -X utf8`，避免系统 GBK 默认解码误判 UTF-8 文件。
 
+2026-10-29 首页改版按使用者提出的阅读要求重排：实际工作展示在前，是什么、解决什么、AGENTS.md 改动与启用入口有独立定位；八条全文保留，完整报告可折叠阅读，30% 的 Plus 个人预留理由已补充。本轮仅修改文案与呈现，未改变额度工具逻辑；复查本地链接、中文、技能元数据和桌面/手机页面，不以缩短字数代替视觉判断。
+
 主视觉和海报由可编辑 SVG 在 Chromium 中渲染，并检查实际图片。README 完成本地预览后，另在已公开的 GitHub 页面检查了 1440 px 与 390 px 两种宽度：HTTP 200、README 图片均加载、没有整页横向溢出，桌面与手机截图已查看。这证明所检查尺寸下的阅读效果，不代表所有 GitHub 客户端都一样。
 
 从公开仓库重新克隆到新项目的 `.agents/skills/eight-honors` 后，32 项测试及 skill 格式校验再次通过。随后向实际 Codex App Server 请求 `skills/list`（forceReload），返回该安装的 `name=eight-honors`、`scope=repo`、`enabled=true`。这一步没有开启模型回合；证明宿主能发现该技能，不等于每轮自动调用或效果提升。
