@@ -4,9 +4,9 @@
 
 ## 图片
 
-- [主视觉](../assets/hero.png)：1440 × 690，适合 README 与横向分享。
-- [竖版主视觉](../assets/hero-mobile.png)：900 × 1090，适合手机阅读。
-- [八条完整海报](../assets/social-poster.png)：1080 × 1440，可作为小红书单页配图。
+- [新版八条全文图](../assets/principles-desktop.png)：1480 × 894，适合横向分享。
+- [新版八条全文竖图](../assets/principles-mobile.png)：900 × 1380，适合手机阅读与小红书配图。
+- [主动汇报](../assets/records/progress-mobile.png)、[完整八条](../assets/records/eight_principles-mobile.png)、[额度收尾](../assets/records/quota_closeout-mobile.png)：2026-10-29 实际项目的原文排版，须保留原文与节选标记。
 - 同目录保留 SVG 源文件，文字可编辑，不必重新生成整张图。
 
 ## 标题候选
@@ -19,7 +19,7 @@
 
 前阵子小火过的 AI 编程八荣八耻，大家可能都见过。
 
-我自己和 Agent 做研究、写代码、改文档、跑长任务时，也慢慢攒出了一套八条。最近整理成了一个 skill，叫「八荣八耻.skill」。
+我自己和 Agent 做研究、写代码、改文档、跑长任务时，也慢慢攒出了一套八条。最近整理成了一个 skill，叫「八荣八耻.skill」。模型在进化，工作作风也得跟上。
 
 我最在意几件事：
 

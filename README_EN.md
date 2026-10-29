@@ -2,55 +2,54 @@
 
 # Eight Honors.skill
 
-### Working agreements for an agent you want to keep working with.
+### Give your agent a few working principles.
 
-Clear outcomes · Grounded claims · Real artifacts · Recoverable progress
+**Proactive updates · Eight-point reviews · Quota closeout**
 
-[中文首页](README.md) · [Skill instructions](SKILL.md) · [Installation](docs/installation.md) · [Validation](docs/validation.md)
+[中文首页](README.md) · [Real project records](docs/examples/real-work.md) · [Install](#install) · [Design](docs/design-origin.md)
 
 </div>
 
-![Eight Honors: finish the work and explain it clearly](assets/hero.png)
+![The complete eight principles](assets/principles-desktop.png)
 
-This is my personal collaboration style, packaged as an Agent Skill: understand the intended outcome, make routine decisions within authorization, inspect the actual result, and keep the user informed. Small tasks stay small.
+An Agent Skill that brings your working agreements into a project's `AGENTS.md`: understand the goal, verify claims, reuse mature solutions, make decisions within authority, inspect real results, preserve progress, stop wasted effort, and explain the work.
 
-The Chinese “eight honors and eight shames” framing already existed in AI coding communities, including [earlier skills](https://github.com/wangcangxing/ai-eight-honors-eight-shames). This project presents my revised agreements and practical Codex integration. It makes no originality or measured productivity claims.
+## What it looks like in practice
 
-| # | Agreement |
+The Chinese homepage shows three original excerpts from an actual project on **October 29, 2026**: a progress update, the complete current eight-principle appendix after a results report, and a quota closeout. Personal paths, account allowance and reset time are visibly redacted. The images are typeset original messages, not native app screenshots.
+
+[Read the original records](docs/examples/real-work.md). They preserve unfinished work and unverified parts; they are not a controlled model comparison.
+
+## At a glance
+
+| Question | Answer |
 | --- | --- |
-| 1 | Clarify intended outcomes instead of solving the wrong problem. |
-| 2 | Verify consequential claims and distinguish facts, inference, and unknowns. |
-| 3 | Find and evaluate mature solutions before building nontrivial replacements. |
-| 4 | Exercise judgment within authorization; distinguish goals from suggested methods. |
-| 5 | Inspect actual artifacts against their intended use. |
-| 6 | Save progress and deliver a readable handoff before a foreseeable interruption. |
-| 7 | Stop ineffective routes and converge after relevant checks pass. |
-| 8 | Proactively explain progress, decisions, evidence, and limitations. |
+| What is it? | A reusable skill, persistent project agreements, and Codex quota/handoff helpers. |
+| What does it address? | Wrong goals, unsupported claims, unnecessary rebuilding, superficial acceptance, and missing handoffs. |
+| What changes? | Visible progress, decisions backed by evidence, an eight-point explanation after work reports, and early closeout. |
+| What files change? | Project skill files and one managed block in `AGENTS.md`, with prior rules backed up. |
+| What do I need? | Python 3.9+ for the installer; a tool-capable agent for actual file work. |
 
-## Install in a Codex project
+## Install
 
-```sh
-git clone https://github.com/Cyh29hao/eight-honors-skill .agents/skills/eight-honors
-```
-
-Invoke `$eight-honors` in that project. For persistent preferences, merge the marked block in [AGENTS.fragment.md](references/AGENTS.fragment.md) into your existing project `AGENTS.md`, preserving other rules. Codex's default filename is `AGENTS.md`, with an S. Installation alone does not prove a skill was loaded in a particular conversation.
-
-The skill instructions and detailed guides are primarily Chinese. By default, work reports start with the actual outcome, evidence, limitations, and next action, followed by eight short explanations using the full Chinese principle titles. Pure Q&A does not need this appendix. You can override the reporting frequency in your project agreements.
-
-## Optional Codex quota tools
-
-Requires Python 3.9+ and a signed-in Codex CLI supporting App Server. No third-party Python packages are needed.
+Run in your project directory:
 
 ```sh
-python .agents/skills/eight-honors/scripts/check_codex_quota.py --json
+python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))"
 ```
 
-Five-hour allowance at or below 30% triggers closeout. Weekly allowance at or below 30% is a notice; weekly exhaustion requires closeout. Unavailable or unrecognized data returns `UNKNOWN`.
+The command downloads and executes the readable [installer](scripts/install.py). It installs the runtime in `.agents/skills/eight-honors`, backs up existing rules, and merges one marked block. Repeating it does not append duplicate rules. Custom edits are protected. Add `--dry-run` for a zero-write preview, `--project PATH` to choose a project, or `--agent claude` for project Claude paths.
 
-The default 30% reserve reflects the author's Plus workflow: leave room to inspect the result, give feedback, and complete further conversation turns instead of reaching the limit with unfinished work. It is a personal default, not a platform requirement or a measured optimum. Users may explicitly choose another threshold, such as 10%.
+Open a new Codex session and invoke `$eight-honors`. For Claude Code use `/eight-honors`; actual Claude session loading has not been certified. [Installation details](docs/installation.md).
 
-`codex_quota_workflow.py` offers live stage advice, atomic checkpoint saves, and historical readback. **`resume` never runs commands. No automatic wakeup scheduler is bundled.** Actual continuation needs user authorization and a verified host mechanism. These helpers advise the agent; they do not intercept every model request or guarantee delivery after a sudden failure.
+You can also give a file-capable agent the repository URL and ask it to read the README, install the runtime, back up and merge project rules, preserve custom content, and report which files changed.
 
-Choose a model that reliably follows instructions and uses your tools. Files, shell, visual inspection, quota access, and scheduling are separate host capabilities. Other Agent Skills hosts can reuse the instructions, but cross-host behavior has not been certified. See [validation](docs/validation.md), [customization](docs/customization.md), and [sources](docs/provenance.md).
+## Your preferences, your rules
+
+By default, work reports give results, evidence and limitations first, then explain the work under the eight full Chinese principle titles. Pure Q&A skips the appendix; small tasks stay small. Change reporting frequency in your project rules.
+
+The default 30% five-hour reserve reflects the author's Plus workflow: leave room to inspect results, give feedback and revise over further turns. It is adjustable. Weekly low allowance is informational; actual exhaustion requires closeout. The quota helpers use Codex's read-only App Server interface. `resume` reads historical handoffs; actual wakeup needs a host scheduler.
+
+The earlier coding “eight honors and eight shames” concept already existed. This version separates goals, evidence, reuse, judgment, acceptance, continuity, cost and communication for broader agent work. [Design origin](docs/design-origin.md) · [Sources](docs/provenance.md) · [Capabilities and models](docs/compatibility.md) · [Validation](docs/validation.md)
 
 By [Cyh29hao](https://github.com/Cyh29hao), also the author of [Shuixian.skill](https://github.com/Cyh29hao/shuixian-skill). MIT License.

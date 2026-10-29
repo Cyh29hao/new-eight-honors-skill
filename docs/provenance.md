@@ -24,9 +24,12 @@
 | [Codex Skills](https://learn.chatgpt.com/docs/build-skills) 与 [AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md) | 按需技能与长期规则分工，项目/用户范围与层级 | 本仓库不改客户端的加载机制，不保证每轮自动匹配 |
 | [Codex App Server](https://learn.chatgpt.com/docs/app-server) | 只读额度查询接口与实际窗口元数据 | 不消费重置券，不固定假定所有账户都有同样窗口 |
 | [QuotaGuard](https://github.com/LUMOSSES/QuotaGuard) | 阶段预留、原子交接的设计启发；复用作者已实现的两个本机工具 | 未复制上游源码，未引入其依赖或把交接读取当作调度 |
+| OpenAI 本机 `skill-installer` | 检查了 ZIP 下载、路径验证和现有目录保护的成熟做法 | 它不负责本项目的规则备份和标记块合并，因此独立补上项目安装、重复更新和失败恢复；没有复制上游源码 |
 | [Anthropic: Building effective agents](https://www.anthropic.com/research/building-effective-agents) | 从简单方法开始、使用环境反馈、设置停止条件的设计参考 | 这篇文章不能为本 skill 的实际成功率背书 |
 
 自行制作的是这版八条的职责与裁决方式、报告和接入说明、公开包装及视觉素材。额度工具来自作者已有实现，公开前通用化并测试；无需新增 Python 依赖。
+
+当前首页使用 2026-10-29 同一实际项目的消息节选，完整八条标题已与本版规则核对。图片是原文排版，原始私人日志未发布；并非原生界面截图。设计来由另据 2026-10-21 原始讨论整理，用户原话与助手解释分开，见[设计脉络](design-origin.md)。
 
 ## 能主张与不能主张的效果
 
