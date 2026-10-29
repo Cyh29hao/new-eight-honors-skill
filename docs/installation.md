@@ -12,7 +12,7 @@ macOS/Linux 如只有 `python3`，将开头的 `python` 换成 `python3`。命�
 
 它会完成：
 
-1. 只下载需要的运行文件到项目 `.agents/skills/eight-honors`，不会把宣传图片、测试和私人材料装进去。
+1. 下载仓库包后，只将需要的运行文件安装到项目 `.agents/skills/eight-honors`，不会把宣传图片和测试装进去。
 2. 已有 `AGENTS.md` 要修改时，先备份原始字节到项目 `.eight-honors-backups/` 下的独立时间目录。该目录在 Windows 隐藏，且内部有 Git 忽略规则。
 3. 在 `AGENTS.md` 添加或替换 `EIGHT-HONORS:START/END` 标记块，保留块外内容、UTF-8 BOM 与原有换行方式。
 4. 读回规则与运行文件，核对是否确实写入。输出实际位置及备份路径。
