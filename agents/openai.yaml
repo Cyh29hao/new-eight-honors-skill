@@ -1,4 +1,4 @@
 interface:
-  display_name: "八荣八耻 · Agent 工作约定"
+  display_name: "新八荣八耻 · Agent 工作约定"
   short_description: "明确目标、查证复用、独立判断、实物验收；让工作可检查，中断有交接。"
   default_prompt: "请按 $eight-honors 完成当前任务，交付实际成果、验证证据，并在工作报告末尾逐条说明八条如何体现。"

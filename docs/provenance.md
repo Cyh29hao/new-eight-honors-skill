@@ -2,7 +2,7 @@
 
 ## 概念已有历史
 
-常见的 AI 编程八荣八耻包括“以瞎猜接口为耻，以认真查询为荣”等表达，可见 [LangBot 的 AGENTS.md](https://github.com/langbot-app/LangBot/blob/master/AGENTS.md)。[2025-08-29 的 LINUX DO 帖子](https://linux.do/t/topic/917534)也已收录类似版本；它能证明当时已传播，不能据此确认最早作者。
+常见的 AI 编程八荣八耻以接口查询、需求确认、业务核实、复用、测试、架构、诚实与谨慎重构为重点。可核对的传播节点包括 [2025-09-12 的 LINUX DO 回复](https://linux.do/t/topic/952503/27)、[LangBot 2025-11-06 引入的 AGENTS.md](https://github.com/langbot-app/LangBot/blob/8f2b177145eae8649f22d0a9cc0242a04a4a498f/AGENTS.md)，以及 [2026-07-22 的独立博客转述](https://www.cxl--package.top/posts/programmer-eight-honors-shames/)。这些能证明社区传播与项目采用，未确认最初作者，也不量化全网影响规模。较早的 topic/917534 可读正文未核实包含八条，因此不再用它确定发布日期。
 
 [wangcangxing/ai-eight-honors-eight-shames](https://github.com/wangcangxing/ai-eight-honors-eight-shames)已经把相同概念打包为 skill，并提供 AGENTS.md 接入和报告留痕。所以本仓库不主张“首创八荣八耻”“首次 skill 化”“首次让 Agent 汇报”。原有项目、商标与文字权利归各自作者。
 
@@ -19,6 +19,8 @@
 | 参考 | 实际采用 | 没有照搬的部分与原因 |
 | --- | --- | --- |
 | [水仙.skill](https://github.com/Cyh29hao/shuixian-skill) | 一句话定位、首屏视觉、自然语言安装入口、具体体验示例、深入说明拆到文档 | 人格设定和已有社区收录属于水仙，不能当作本项目背书 |
+| [Distilly，原 colleague-skill](https://github.com/titanwings/distilly/blob/dot-skill/README.md) | 用几个读者能认出的场景解释抽象概念；先讲为什么关心，再讲机制 | 不复制其亲密关系叙事和长更新墙 |
+| [PUA 概念 README](https://github.com/tanweai/pua/blob/main/README.zh-CN.md) | 从具体失败表现进入方法、证据和使用入口 | 不复制其角色操作策略或性能数字；这里自行写协作情境 |
 | [obra/superpowers](https://github.com/obra/superpowers) | 解释可见工作过程、模块化入口、明确验证与安装说明 | 不复制强制审批/TDD/代理链；这里按任务规模决定流程 |
 | [anthropics/skills](https://github.com/anthropics/skills) | `SKILL.md` 与按需参考资料的目录形式 | 格式兼容不能证明跨宿主效果，未借用官方认可说法 |
 | [Codex Skills](https://learn.chatgpt.com/docs/build-skills) 与 [AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md) | 按需技能与长期规则分工，项目/用户范围与层级 | 本仓库不改客户端的加载机制，不保证每轮自动匹配 |

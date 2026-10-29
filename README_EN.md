@@ -1,6 +1,6 @@
 <div align="center">
 
-# Eight Honors.skill
+# New Eight Honors.skill
 
 ### Give your agent a few working principles.
 
@@ -16,7 +16,7 @@ An Agent Skill that brings your working agreements into a project's `AGENTS.md`:
 
 ## What it looks like in practice
 
-The Chinese homepage shows three original excerpts from an actual project on **October 29, 2026**: a progress update, the complete current eight-principle appendix after a results report, and a quota closeout. Personal paths, account allowance and reset time are visibly redacted. The images are typeset original messages, not native app screenshots.
+The Chinese homepage shows original excerpts from an actual project on **October 29, 2026**: the complete current eight-principle appendix, quota closeout, and a foldout progress update. Only local filesystem paths are redacted; the historical 27% allowance and 21:26 reset time remain. The images are typeset original messages, not native app screenshots.
 
 [Read the original records](docs/examples/real-work.md). They preserve unfinished work and unverified parts; they are not a controlled model comparison.
 
@@ -35,12 +35,14 @@ The Chinese homepage shows three original excerpts from an actual project on **O
 Run in your project directory:
 
 ```sh
-python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))"
+python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/new-eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))"
 ```
 
 The command downloads and executes the readable [installer](scripts/install.py). It installs the runtime in `.agents/skills/eight-honors`, backs up existing rules, and merges one marked block. Repeating it does not append duplicate rules. Custom edits are protected. Add `--dry-run` for a zero-write preview, `--project PATH` to choose a project, or `--agent claude` for project Claude paths.
 
 Open a new Codex session and invoke `$eight-honors`. For Claude Code use `/eight-honors`; actual Claude session loading has not been certified. [Installation details](docs/installation.md).
+
+The repository and display name are now New Eight Honors. The invocation name, installation directory, managed markers and ownership format remain compatible with existing installations.
 
 You can also give a file-capable agent the repository URL and ask it to read the README, install the runtime, back up and merge project rules, preserve custom content, and report which files changed.
 

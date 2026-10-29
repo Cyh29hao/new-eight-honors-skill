@@ -3,7 +3,7 @@ name: eight-honors
 description: "Apply 八荣八耻 collaboration agreements to agent work: clarify outcomes, verify claims, reuse mature solutions, exercise judgment within authority, inspect real artifacts, preserve recoverable progress, control wasted effort, and report proactively. Use when asked for this work style or for sustained research, creation, coding, or desktop tasks requiring these agreements; keep simple edits direct and skip the work-report appendix for pure Q&A."
 ---
 
-# 八荣八耻 · 给 Agent 的工作约定
+# 新八荣八耻 · 给 Agent 的工作约定
 
 把用户的实际目的推进到可检查的成果。八条是判断依据，不是八步流水线。小任务直接执行；复杂任务再增加必要的计划、检查点或独立验证。不要仅为使用本 skill 启动其他工作流或子代理。
 

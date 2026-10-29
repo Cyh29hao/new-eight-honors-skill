@@ -25,7 +25,7 @@ import uuid
 import zipfile
 
 
-REPOSITORY = "Cyh29hao/eight-honors-skill"
+REPOSITORY = "Cyh29hao/new-eight-honors-skill"
 ARCHIVE_URL = "https://codeload.github.com/" + REPOSITORY + "/zip/refs/heads/main"
 RUNTIME_FILES = (
     "SKILL.md", "LICENSE", "agents/openai.yaml",

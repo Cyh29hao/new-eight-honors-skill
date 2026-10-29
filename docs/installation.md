@@ -5,7 +5,7 @@
 在已有项目根目录运行，需要 Python 3.9+；不需要 Git 或额外 Python 包：
 
 ```sh
-python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))"
+python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/new-eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))"
 ```
 
 macOS/Linux 如只有 `python3`，将开头的 `python` 换成 `python3`。命令下载并执行仓库中可阅读的 [scripts/install.py](../scripts/install.py)。远端下载失败时停止，不会假装安装成功。
@@ -50,7 +50,7 @@ python path/to/eight-honors-skill/scripts/install.py --source path/to/eight-hono
 仍可手动克隆：
 
 ```sh
-git clone https://github.com/Cyh29hao/eight-honors-skill .agents/skills/eight-honors
+git clone https://github.com/Cyh29hao/new-eight-honors-skill .agents/skills/eight-honors
 ```
 
 这种方式只安装目录，需另行合并 [AGENTS.fragment.md](../references/AGENTS.fragment.md)。手动克隆没有安装器的所有权清单，命令安装器不会直接覆盖它；保留旧目录、核对修改后再选择迁移方式。
