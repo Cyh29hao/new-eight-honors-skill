@@ -1,8 +1,16 @@
+<div align="center">
+
 # 新八荣八耻.skill
 
-**最适合 Codex 用户的八条工作约定。** 写进 `AGENTS.md`，让 Agent 做事有判断、交付有验收、停下有交代。
+### 给你的 Agent 装上新八荣八耻。
+
+**主动汇报 · 逐条验收 · 额度收尾**
+
+最适合 **Codex 用户**，把做事标准写进 `AGENTS.md`。
 
 [直接启用](#怎么启用会改哪里) · [看真实工作记录](#实际工作会变成什么样) · [读八条做法](#为什么是这八条)
+
+</div>
 
 <picture>
   <source media="(max-width: 600px)" srcset="assets/principles-mobile.png" />
@@ -130,7 +138,9 @@ python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercont
 
 [安装、更新与备份](docs/installation.md) · [能力与型号](docs/compatibility.md)
 
-这套规则来自作者与 Codex 在真实项目里的反复修订：把目的认准，给方法判断空间，按实际体验验收，工作停下也留好交代。小任务直接做，复杂任务按需要增加检查与交接。
+**给 Agent 立规矩，也是在选择我们怎样共事。**
+
+目标认真对齐，方法留给判断，成果经得起实际使用，停下也能接着做。新八荣八耻写的是 Agent 的工作约定，也是我的工作与管理偏好。
 
 [设计原话与来由](docs/design-origin.md) · [来源](docs/provenance.md) · [English](README_EN.md) · MIT License
 

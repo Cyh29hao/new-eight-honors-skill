@@ -1,8 +1,16 @@
+<div align="center">
+
 # New Eight Honors.skill
 
-**Eight working agreements, built first for Codex users.** Put them in `AGENTS.md`: let the agent make decisions, check the actual product, and leave a useful handoff.
+### Give your agent a few working principles.
+
+**Proactive updates · Eight-point reviews · Quota closeout**
+
+Built first for **Codex users**. Put your working standards in `AGENTS.md`.
 
 [Install](#install) · [Real work records](#what-the-work-looks-like) · [The eight principles](#the-eight-principles) · [中文首页](README.md)
+
+</div>
 
 <picture>
   <source media="(max-width: 600px)" srcset="assets/principles-mobile.png" />
@@ -103,7 +111,9 @@ python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercont
 
 [Installation, updates, and backups](docs/installation.md) · [Capabilities and models](docs/compatibility.md)
 
-These agreements grew from repeated work with Codex: understand the purpose, allow judgment about methods, inspect the real experience, and leave work ready to continue. Small tasks stay direct; larger tasks get the checks and handoffs they need.
+**Setting principles for an agent is also choosing how we work together.**
+
+Align on the goal, leave room for judgment, judge the result through actual use, and make the work easy to continue. New Eight Honors expresses both the agent's working agreements and my own preferences for work and management.
 
 [Design origin](docs/design-origin.md) · [Sources](docs/provenance.md) · MIT License
 
