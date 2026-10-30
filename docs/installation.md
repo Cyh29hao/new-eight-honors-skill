@@ -7,17 +7,36 @@
 在已有项目根目录运行，需要 Python 3.9+；不需要 Git 或额外 Python 包：
 
 ```sh
-python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/new-eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))"
+python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/new-eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))" --configure
 ```
 
-macOS/Linux 如只有 `python3`，将开头的 `python` 换成 `python3`。命令下载并执行仓库中可阅读的 [scripts/install.py](../scripts/install.py)。远端下载失败时停止，不会假装安装成功。
+向导一次设置连接方式、汇报强度与语气，回车可用显示的默认值。API/中转明确选`api`；计划模式核对当前CLI路由后查询额度。macOS/Linux只有`python3`时替换开头命令即可。下载并执行的是可阅读的[scripts/install.py](../scripts/install.py)。
+
+## 先选习惯，再装规则
+
+Agent代装时，先一次问清三项并给推荐，用户可回复“用作者默认”；已有明确选择直接沿用。手工向导用`--configure`，脚本化安装用下面的参数。去掉`--configure`且未传偏好时，新安装采用作者默认，已有安装保留原选择。
+
+| 参数 | 选项与默认 |
+| --- | --- |
+| `--quota-mode` | `auto`（默认）、`subscription`、`api`、`off` |
+| `--report-mode` | `full`（作者默认：每份报告八条）、`milestones`（日常推荐：阶段/最终八条）、`concise`（正文为主） |
+| `--tone` | `direct`（默认：直接有主见）、`neutral`（中性平实）；都少免责、主动给建议 |
+| `--five-hour-closeout-percent` | 计划预留线，默认30；例如用户选10时传10 |
+
+例如已克隆后在项目安装API、轻量汇报模式：
+
+```sh
+python path/to/new-eight-honors-skill/scripts/install.py --source path/to/new-eight-honors-skill --project path/to/project --quota-mode api --report-mode milestones --tone direct
+```
+
+选择写在项目`AGENTS.md`专属块末尾的“本项目选择”，优先于通用默认。可直接改可见的`quota_mode`、`report_mode`、`tone`与预留线，或让Agent带参数更新；普通升级保留选择，显式参数只覆盖对应项。安装后读回选择，再用熟悉的小任务试一次实际体验。
 
 它会完成：
 
 1. 下载仓库包后，只将需要的运行文件安装到项目 `.agents/skills/eight-honors`，不会把宣传图片和测试装进去。
 2. 已有 `AGENTS.md` 要修改时，先备份原始字节到项目 `.eight-honors-backups/` 下的独立时间目录。该目录在 Windows 隐藏，且内部有 Git 忽略规则。
 3. 在 `AGENTS.md` 添加或替换 `EIGHT-HONORS:START/END` 标记块，保留块外内容、UTF-8 BOM 与原有换行方式。
-4. 读回规则与运行文件，核对是否确实写入。输出实际位置及备份路径。
+4. 读回规则、运行文件与偏好，输出实际位置、所选习惯及备份路径。
 
 安装完成后开新会话，调用 `$eight-honors`；也可以让 Agent 列出实际读取的规则和 skill。文件写入与客户端实际加载是两个检查。
 

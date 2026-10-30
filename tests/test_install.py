@@ -101,6 +101,136 @@ class ProjectInstallTests(unittest.TestCase):
         self.assertFalse(self.install()["changed"])
         self.assertEqual(snapshot(self.project), before)
 
+    def test_personal_choices_change_project_rules_without_customizing_runtime(self):
+        result = self.install(quota_mode="api", report_mode="milestones", tone="neutral",
+                              five_hour_closeout_percent=15)
+        text = self.rules.read_text(encoding="utf-8")
+        self.assertEqual(result["preferences"], {
+            "quota_mode": "api", "report_mode": "milestones", "tone": "neutral",
+            "five_hour_closeout_percent": 15,
+        })
+        self.assertIn("### 本项目选择", text)
+        self.assertIn("优先于本块和 skill", text)
+        self.assertIn("API/中转；跳过 ChatGPT 计划百分比判断", text)
+        self.assertIn("阶段结束、最终交付与中断收尾再附完整八条", text)
+        self.assertIn("--quota-mode api --five-hour-closeout-percent 15", text)
+        self.assertEqual(text.count("EIGHT-HONORS:"), 2)
+        for name in installer.RUNTIME_FILES:
+            self.assertEqual((self.skill / name).read_bytes(), (PACKAGE / name).read_bytes())
+        before = snapshot(self.project)
+        self.assertFalse(self.install()["changed"])
+        self.assertEqual(snapshot(self.project), before)
+
+    def test_ordinary_upgrade_keeps_choices_and_explicit_change_overrides_only_one(self):
+        self.rules.write_text("My project rules\n", encoding="utf-8")
+        self.install(quota_mode="api", report_mode="concise", tone="neutral",
+                     five_hour_closeout_percent=12)
+        source = self.root / "updated-source"
+        for name in installer.RUNTIME_FILES:
+            path = source / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes((PACKAGE / name).read_bytes())
+        with (source / "SKILL.md").open("ab") as stream:
+            stream.write(b"\nUpdated working agreements.\n")
+        upgraded = installer.install(self.project, source)
+        self.assertTrue(upgraded["skill_changed"])
+        self.assertFalse(upgraded["rules_changed"])
+        self.assertEqual(upgraded["preferences"]["quota_mode"], "api")
+        self.assertEqual(upgraded["preferences"]["report_mode"], "concise")
+        changed = installer.install(self.project, source, tone="direct")
+        self.assertTrue(changed["rules_changed"])
+        self.assertFalse(changed["skill_changed"])
+        self.assertEqual(changed["preferences"], {
+            "quota_mode": "api", "report_mode": "concise", "tone": "direct",
+            "five_hour_closeout_percent": 12,
+        })
+        self.assertTrue(self.rules.read_text(encoding="utf-8").startswith("My project rules\n"))
+        self.assertIn("少说“不”", self.rules.read_text(encoding="utf-8"))
+
+    def test_preferences_dry_run_reports_choices_and_keeps_every_byte(self):
+        self.install(report_mode="full")
+        before = snapshot(self.project)
+        result = self.install(dry_run=True, report_mode="milestones", quota_mode="off")
+        self.assertEqual(result["preferences"]["quota_mode"], "off")
+        self.assertEqual(result["preferences"]["report_mode"], "milestones")
+        self.assertTrue(result["rules_changed"])
+        self.assertEqual(snapshot(self.project), before)
+
+    def test_hand_editing_visible_setting_values_survives_update(self):
+        self.install()
+        text = self.rules.read_text(encoding="utf-8")
+        text = text.replace("`quota_mode=auto`", "`quota_mode=api`")
+        text = text.replace("`report_mode=full`", "`report_mode=concise`")
+        text = text.replace("`tone=direct`", "`tone=neutral`")
+        text = text.replace("五小时剩余 30%", "五小时剩余 11%")
+        self.rules.write_text(text, encoding="utf-8")
+        result = self.install()
+        self.assertEqual(result["preferences"], {
+            "quota_mode": "api", "report_mode": "concise", "tone": "neutral",
+            "five_hour_closeout_percent": 11,
+        })
+        self.assertIn("--quota-mode api --five-hour-closeout-percent 11",
+                      self.rules.read_text(encoding="utf-8"))
+        self.assertFalse(self.install()["changed"])
+
+    def test_invalid_preferences_refuse_before_download_or_any_project_write(self):
+        before = snapshot(self.project)
+        cases = [dict(quota_mode="relay"), dict(report_mode="chatty"), dict(tone="rude"),
+                 dict(five_hour_closeout_percent=-1), dict(five_hour_closeout_percent=101),
+                 dict(five_hour_closeout_percent=True), dict(five_hour_closeout_percent=float("nan")),
+                 dict(five_hour_closeout_percent=float("inf"))]
+        for values in cases:
+            with self.subTest(values=values), patch.object(installer, "_download") as download:
+                with self.assertRaises(installer.InstallError):
+                    installer.install(self.project, **values)
+                download.assert_not_called()
+                self.assertEqual(snapshot(self.project), before)
+
+    def test_malformed_saved_preferences_are_preserved_for_review(self):
+        self.install()
+        original = self.rules.read_bytes()
+        variants = [original.replace(b'"quota_mode": "auto"', b'"quota_mode": "invented"'),
+                    original.replace(b'"tone": "direct"', b'"tone": null'),
+                    original.replace(installer.PREFERENCE_PREFIX.encode("utf-8"),
+                                     installer.PREFERENCE_PREFIX.encode("utf-8") * 2)]
+        for raw in variants:
+            with self.subTest(raw=raw):
+                self.rules.write_bytes(raw)
+                before = snapshot(self.project)
+                with self.assertRaises(installer.InstallError):
+                    self.install()
+                self.assertEqual(snapshot(self.project), before)
+
+    def test_configure_asks_three_choices_and_installs_selected_behavior(self):
+        with patch("builtins.input", side_effect=["3", "2", "2"]) as prompt, \
+                patch("sys.stdout", new_callable=io.StringIO) as output:
+            code = installer.main(["--project", str(self.project), "--source", str(PACKAGE),
+                                   "--configure", "--five-hour-closeout-percent", "18"])
+        self.assertEqual(code, 0)
+        self.assertEqual(prompt.call_count, 3)
+        text = self.rules.read_text(encoding="utf-8")
+        self.assertIn("quota_mode=api", text)
+        self.assertIn("report_mode=milestones", text)
+        self.assertIn("tone=neutral", text)
+        self.assertIn("--five-hour-closeout-percent 18", text)
+        self.assertIn('"report_mode": "milestones"', output.getvalue())
+
+    def test_configure_enter_preserves_existing_choices_and_eof_keeps_files(self):
+        self.install(quota_mode="api", report_mode="concise", tone="neutral",
+                     five_hour_closeout_percent=9)
+        before = snapshot(self.project)
+        with patch("builtins.input", side_effect=["", "", ""]), \
+                patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(installer.main(["--project", str(self.project), "--source", str(PACKAGE),
+                                             "--configure"]), 0)
+        self.assertEqual(snapshot(self.project), before)
+        with patch("builtins.input", side_effect=EOFError), \
+                patch("sys.stdout", new_callable=io.StringIO), \
+                patch("sys.stderr", new_callable=io.StringIO):
+            self.assertEqual(installer.main(["--project", str(self.project), "--source", str(PACKAGE),
+                                             "--configure"]), 1)
+        self.assertEqual(snapshot(self.project), before)
+
     def test_replaces_same_block_without_touching_bytes_on_either_side(self):
         prefix = b"\xef\xbb\xbf# Existing\r\n\r\n"
         suffix = b"\r\n\r\n# Retained suffix\r\n"
@@ -376,7 +506,7 @@ class ProjectInstallTests(unittest.TestCase):
 
     def test_runs_as_downloaded_code_without_file_using_current_project(self):
         command = [sys.executable, "-B", "-c",
-                   "import sys;exec(compile(sys.stdin.read(),'<downloaded-installer>','exec'))",
+                   "import sys;exec(compile(sys.stdin.buffer.read(),'<downloaded-installer>','exec'))",
                    "--source", str(PACKAGE), "--dry-run"]
         before = snapshot(self.project)
         result = subprocess.run(command, input=(PACKAGE / "scripts" / "install.py").read_text(encoding="utf-8"),

@@ -120,16 +120,16 @@ class SnapshotTests(unittest.TestCase):
 
 
 class ProtocolTests(unittest.TestCase):
-    def test_app_server_protocol_initializes_then_only_reads_limits(self):
-        result = response()
-
+    def run_protocol(self, account, config=None, limits=None):
         class FakeProcess:
             def __init__(self):
                 self.stdin = io.StringIO()
-                self.stdout = io.StringIO("\n".join((
-                    json.dumps({"id": 1, "result": {}}),
-                    json.dumps({"id": 2, "result": result}),
-                )) + "\n")
+                replies = [{"id": 1, "result": {}}, {"id": 2, "result": account}]
+                if config is not None:
+                    replies.append({"id": 3, "result": config})
+                if limits is not None:
+                    replies.append({"id": 4, "result": limits})
+                self.stdout = io.StringIO("\n".join(json.dumps(r) for r in replies) + "\n")
                 self.stopped = False
 
             def poll(self):
@@ -143,11 +143,74 @@ class ProtocolTests(unittest.TestCase):
 
         process = FakeProcess()
         with patch.object(quota.subprocess, "Popen", return_value=process) as launch:
-            self.assertEqual(quota.read_rate_limits("codex-fixture"), result)
-        methods = [json.loads(line)["method"] for line in process.stdin.getvalue().splitlines()]
-        self.assertEqual(methods, ["initialize", "initialized", "account/rateLimits/read"])
+            result = quota.read_rate_limits("codex-fixture")
+        requests = [json.loads(line) for line in process.stdin.getvalue().splitlines()]
         self.assertEqual(launch.call_args.args[0], ["codex-fixture", "app-server", "--stdio"])
         self.assertTrue(process.stopped)
+        return result, requests
+
+    def test_app_server_confirms_account_and_route_before_reading_limits(self):
+        result, requests = self.run_protocol(
+            {"account": {"type": "chatgpt", "email": "synthetic@example.invalid"}, "requiresOpenaiAuth": True},
+            {"config": {"model_provider": "openai"}}, response())
+        self.assertEqual(quota.build_snapshot(result)["quota"], "OK")
+        self.assertEqual([r["method"] for r in requests], ["initialize", "initialized", "account/read", "config/read", "account/rateLimits/read"])
+        self.assertEqual(requests[2]["params"], {"refreshToken": False})
+        self.assertNotIn("synthetic@example.invalid", json.dumps(result))
+
+    def test_api_account_never_queries_plan_even_when_plan_data_is_queued(self):
+        result, requests = self.run_protocol({"account": {"type": "apiKey"}, "requiresOpenaiAuth": True},
+                                             {"config": {}}, response(100, 100))
+        summary = quota.build_snapshot(result)
+        self.assertEqual(summary["quota"], "NOT_APPLICABLE")
+        self.assertIsNone(summary["five_hour"]["remaining_percent"])
+        self.assertEqual([r["method"] for r in requests], ["initialize", "initialized", "account/read"])
+
+    def test_stale_chatgpt_login_does_not_authorize_custom_provider_plan_read(self):
+        result, requests = self.run_protocol(
+            {"account": {"type": "chatgpt"}, "requiresOpenaiAuth": True},
+            {"config": {"model_provider": "relay", "model_providers": {"relay": {"base_url": "https://relay.invalid", "api_key": "synthetic-secret"}}}}, response())
+        summary = quota.build_snapshot(result)
+        self.assertEqual(summary["quota"], "UNKNOWN")
+        self.assertNotIn("account/rateLimits/read", [r["method"] for r in requests])
+        self.assertNotIn("synthetic-secret", json.dumps(summary))
+
+    def test_provider_without_openai_auth_ignores_stale_chatgpt_account(self):
+        result, requests = self.run_protocol({"account": {"type": "chatgpt"}, "requiresOpenaiAuth": False})
+        self.assertEqual(quota.build_snapshot(result)["quota"], "NOT_APPLICABLE")
+        self.assertNotIn("account/rateLimits/read", [r["method"] for r in requests])
+
+    def test_null_account_cannot_turn_a_rate_limit_fixture_into_a_plan(self):
+        result, requests = self.run_protocol({"account": None, "requiresOpenaiAuth": True}, {"config": {}}, response())
+        self.assertEqual(quota.build_snapshot(result)["quota"], "UNKNOWN")
+        self.assertNotIn("account/rateLimits/read", [r["method"] for r in requests])
+
+    def test_missing_provider_config_is_unknown_not_a_plan_guess(self):
+        self.assertEqual(quota.classify_connection({"account": {"type": "chatgpt"}, "requiresOpenaiAuth": True}, {})[0], "UNKNOWN")
+        self.assertEqual(quota.classify_connection({"account": {"type": "chatgpt"}}, {"config": {}})[0], "UNKNOWN")
+
+    def test_custom_endpoint_and_bedrock_are_not_plan_allowance(self):
+        account = {"account": {"type": "chatgpt"}, "requiresOpenaiAuth": True}
+        config = {"config": {"model_providers": {"openai": {"base_url": "https://relay.invalid"}}}}
+        self.assertEqual(quota.classify_connection(account, config)[0], "UNKNOWN")
+        config["config"]["model_providers"]["openai"]["base_url"] = "https://api.openai.com/v1"
+        self.assertEqual(quota.classify_connection(account, config)[0], "UNKNOWN")
+        with patch.dict(quota.os.environ, {"OPENAI_BASE_URL": "https://relay.invalid"}):
+            self.assertEqual(quota.classify_connection(account, {"config": {}})[0], "UNKNOWN")
+        self.assertEqual(quota.classify_connection({"account": {"type": "amazonBedrock"}}, None)[0], "NOT_APPLICABLE")
+
+    def test_explicit_api_and_off_work_without_cli_and_never_query_accounts(self):
+        for mode in ("api", "off"):
+            with self.subTest(mode=mode), patch.object(quota, "find_codex") as find, patch.object(quota, "read_rate_limits") as read:
+                value = quota.get_snapshot(quota_mode=mode)
+                self.assertEqual(value["quota"], "NOT_APPLICABLE")
+                self.assertIsNone(value["five_hour"]["remaining_percent"])
+                find.assert_not_called()
+                read.assert_not_called()
+            output = io.StringIO()
+            with patch.object(sys, "argv", ["check_codex_quota.py", "--json", "--quota-mode", mode]), contextlib.redirect_stdout(output):
+                self.assertEqual(quota.main(), 0)
+            self.assertEqual(json.loads(output.getvalue())["quota"], "NOT_APPLICABLE")
 
     def test_missing_cli_reports_unknown(self):
         output = io.StringIO()

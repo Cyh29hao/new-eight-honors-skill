@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import hashlib
 import io
 import json
+import math
 import os
 from pathlib import Path, PurePosixPath
 import re
@@ -45,6 +46,16 @@ CACHE_PATH = re.compile(
     r"scripts/__pycache__/(?:check_codex_quota|codex_quota_workflow)"
     r"\.cpython-[0-9]{2,3}(?:\.opt-[0-9]+)?\.pyc\Z"
 )
+PREFERENCE_PREFIX = "<!-- eight-honors-preferences: "
+DEFAULT_PREFERENCES = {
+    "quota_mode": "auto", "report_mode": "full", "tone": "direct",
+    "five_hour_closeout_percent": 30.0,
+}
+PREFERENCE_CHOICES = {
+    "quota_mode": ("auto", "subscription", "api", "off"),
+    "report_mode": ("full", "milestones", "concise"),
+    "tone": ("direct", "neutral"),
+}
 
 
 class InstallError(Exception):
@@ -203,6 +214,100 @@ def _merge_rules(original, fragment):
     return original + separator + block + newline
 
 
+def _preference_overrides(quota_mode=None, report_mode=None, tone=None,
+                          five_hour_closeout_percent=None):
+    provided = {"quota_mode": quota_mode, "report_mode": report_mode, "tone": tone,
+                "five_hour_closeout_percent": five_hour_closeout_percent}
+    result = {}
+    for key, value in provided.items():
+        if value is None:
+            continue
+        if key in PREFERENCE_CHOICES:
+            if value not in PREFERENCE_CHOICES[key]:
+                raise InstallError("Invalid %s: choose %s" % (key, ", ".join(PREFERENCE_CHOICES[key])))
+        elif (type(value) not in (int, float) or not math.isfinite(value)
+              or not 0 <= value <= 100):
+            raise InstallError("five_hour_closeout_percent must be a finite number from 0 to 100")
+        else:
+            value = float(value)
+        result[key] = value
+    return result
+
+
+def _saved_preferences(original):
+    """Read only this installer's known settings from its managed rule block."""
+    span = _block_span(original)
+    if span is None:
+        return {}
+    try:
+        block = original[span[0]:span[1]].decode("utf-8-sig").replace("\r\n", "\n")
+    except UnicodeError as exc:
+        raise InstallError("The existing rules file is not UTF-8; convert it explicitly first.") from exc
+    count = block.count(PREFERENCE_PREFIX)
+    if count == 0:
+        return {}
+    match = re.search(r"(?m)^" + re.escape(PREFERENCE_PREFIX) + r"(.+) -->$", block)
+    if count != 1 or match is None:
+        raise InstallError("Malformed or duplicate saved preferences; review the managed rule block.")
+    try:
+        saved = json.loads(match.group(1))
+        if not isinstance(saved, dict) or set(saved) != set(DEFAULT_PREFERENCES):
+            raise ValueError("Unknown preference keys")
+        validated = _preference_overrides(**saved)
+        if set(validated) != set(DEFAULT_PREFERENCES):
+            raise ValueError("Missing preference value")
+        # The visible setting values are the editing surface. The JSON comment is
+        # installer metadata, not a second choice that silently defeats hand edits.
+        visible = {}
+        for key in PREFERENCE_CHOICES:
+            matches = re.findall(r"(?m)^- [^\n]*（`" + re.escape(key) + r"=([^`]+)`）：", block)
+            if len(matches) != 1:
+                raise ValueError("Missing or duplicate visible preference")
+            visible[key] = matches[0]
+        reserves = re.findall(r"(?m)^- 计划预留线：五小时剩余 ([^%\n]+)%", block)
+        if len(reserves) != 1:
+            raise ValueError("Missing or duplicate visible reserve")
+        visible["five_hour_closeout_percent"] = float(reserves[0])
+        return _preference_overrides(**visible)
+    except (TypeError, ValueError) as exc:
+        raise InstallError("Invalid saved preferences; review the managed rule block.") from exc
+
+
+def _personalized_fragment(fragment, preferences):
+    """Keep runtime sources generic; project choices belong in project guidance."""
+    text = fragment.decode("utf-8-sig").replace("\r\n", "\n").replace("\r", "\n")
+    quota = preferences["quota_mode"]
+    threshold = "%g" % preferences["five_hour_closeout_percent"]
+    quota_text = {
+        "auto": "自动核对当前连接方式；确认是 ChatGPT 计划才用真实计划额度。API/中转或来源未明时按阶段保存、交接。",
+        "subscription": "使用 ChatGPT 计划；核实当前连接和额度来源后按真实余额收尾。",
+        "api": "使用 API/中转；跳过 ChatGPT 计划百分比判断，按阶段保存成果和下一步；有服务商真实预算时按其口径执行。",
+        "off": "仅做阶段保存与交接，不自动查询计划额度；按本次时间、预算和停止要求收尾。",
+    }[quota]
+    report_text = {
+        "full": "每份工作报告先写正常正文，末尾附完整八条；纯问答和闲聊省略附录。",
+        "milestones": "日常进度简报写发现、问题和下一步；阶段结束、最终交付与中断收尾再附完整八条。",
+        "concise": "以简洁正常正文交代结果、依据、缺口和下一步；仅在用户要求或确有解释需要时展开八条。",
+    }[preferences["report_mode"]]
+    tone_text = {
+        "direct": "直接自然地表达，先给判断、方案和可执行建议；少说“不”及防御式免责，事实、风险与权限边界照实说明。",
+        "neutral": "使用中性、清楚、尊重人的措辞，先说明结果与可行路径，再交代影响决定的依据和限制。",
+    }[preferences["tone"]]
+    settings = json.dumps(preferences, ensure_ascii=False, sort_keys=True, allow_nan=False)
+    section = ("\n\n### 本项目选择\n\n"
+               "此处选择优先于本块和 skill 的默认偏好；用户最新指令优先。\n\n"
+               + PREFERENCE_PREFIX + settings + " -->\n\n"
+               + "- 连接与额度（`quota_mode=" + quota + "`）：" + quota_text + "\n"
+               + "- 汇报方式（`report_mode=" + preferences["report_mode"] + "`）：" + report_text + "\n"
+               + "- 表达方式（`tone=" + preferences["tone"] + "`）：" + tone_text + "\n"
+               + "- 计划预留线：五小时剩余 " + threshold + "%（仅适用于真实计划额度）。\n"
+               + "- 调用配套额度工具时使用 `--quota-mode " + quota
+               + " --five-hour-closeout-percent " + threshold
+               + "`；checker 与 admit 保持相同参数。\n")
+    return (text[:text.index(END.decode("ascii"))].rstrip() + section
+            + END.decode("ascii")).encode("utf-8")
+
+
 def _manifest(files):
     hashes = {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
     return (json.dumps({"format": 1, "owner": OWNER, "files": hashes},
@@ -257,7 +362,7 @@ def _existing_skill(destination):
     return existing
 
 
-def _plan(project, files, agent):
+def _plan(project, files, agent, preference_overrides=None):
     _no_links(project)
     if not project.is_dir():
         raise InstallError("Project must be an existing directory: " + str(project))
@@ -267,9 +372,12 @@ def _plan(project, files, agent):
     skill = project / (".agents" if agent == "codex" else ".claude") / "skills" / "eight-honors"
     _no_links(rules)
     original = _read_file(rules) if rules.exists() else None
+    overrides = dict(preference_overrides or {})
+    preferences = dict(DEFAULT_PREFERENCES, **_saved_preferences(original or b""))
+    preferences.update(overrides)
     prior = _existing_skill(skill)
     desired = dict(files, **{MANIFEST: _manifest(files)})
-    merged = _merge_rules(original or b"", _validate_runtime(files))
+    merged = _merge_rules(original or b"", _personalized_fragment(_validate_runtime(files), preferences))
     for parent in skill.parents:
         if parent == project:
             break
@@ -277,6 +385,7 @@ def _plan(project, files, agent):
             raise InstallError("Expected a directory: " + str(parent))
     return {"rules": rules, "skill": skill, "original": original, "prior": prior,
             "merged": merged, "desired": desired,
+            "preferences": preferences, "preference_overrides": overrides,
             "rules_changed": original != merged, "skill_changed": _managed_files(prior) != desired}
 
 
@@ -355,7 +464,8 @@ def _commit(project, plan):
     try:
         # Recheck after locking, before any backup or project mutation.
         fresh = _plan(project, {name: plan["desired"][name] for name in RUNTIME_FILES},
-                      "codex" if plan["rules"].name == "AGENTS.md" else "claude")
+                      "codex" if plan["rules"].name == "AGENTS.md" else "claude",
+                      plan["preference_overrides"])
         if fresh != plan:
             raise InstallError("Project changed while preparing installation; retry after reviewing it.")
         if plan["original"] is not None:
@@ -412,32 +522,82 @@ def _commit(project, plan):
     return backup
 
 
-def install(project=None, source=None, agent="codex", dry_run=False):
+def install(project=None, source=None, agent="codex", dry_run=False, *,
+            quota_mode=None, report_mode=None, tone=None, five_hour_closeout_percent=None):
     if agent not in ("codex", "claude"):
         raise InstallError("Unsupported agent: " + str(agent))
+    overrides = _preference_overrides(quota_mode, report_mode, tone, five_hour_closeout_percent)
     project = _absolute(project or Path.cwd())
     if source is None:
         files = _archive_files(_download())
     else:
         source = _absolute(source)
         files = {name: _read_file(source / name) for name in RUNTIME_FILES}
-    plan = _plan(project, files, agent)
+    plan = _plan(project, files, agent, overrides)
     changed = plan["rules_changed"] or plan["skill_changed"]
     backup = _commit(project, plan) if changed and not dry_run else None
     return {"changed": changed, "dry_run": dry_run, "skill_path": str(plan["skill"]),
             "rules_path": str(plan["rules"]), "backup_path": str(backup) if backup else None,
-            "skill_changed": plan["skill_changed"], "rules_changed": plan["rules_changed"]}
+            "skill_changed": plan["skill_changed"], "rules_changed": plan["rules_changed"],
+            "preferences": plan["preferences"]}
+
+
+def _choose(title, choices, default):
+    options = "；".join("%d=%s" % (index, label)
+                       for index, (_, label) in enumerate(choices, 1))
+    while True:
+        try:
+            answer = input(title + "（" + options + "；直接回车=" + default + "）：").strip()
+        except EOFError as exc:
+            raise InstallError("Preference selection ended before installation; use explicit preference flags or finish --configure.") from exc
+        if not answer:
+            return default
+        if answer.isdecimal() and 1 <= int(answer) <= len(choices):
+            return choices[int(answer) - 1][0]
+        if answer in {value for value, _ in choices}:
+            return answer
+        print("请选择上列序号或名称。")
+
+
+def _configure(args):
+    project = _absolute(args.project or Path.cwd())
+    rules = project / ("AGENTS.md" if args.agent == "codex" else "CLAUDE.md")
+    saved = _saved_preferences(_read_file(rules)) if rules.exists() else {}
+    preferences = dict(DEFAULT_PREFERENCES, **saved)
+    preferences.update(_preference_overrides(args.quota_mode, args.report_mode, args.tone,
+                                           args.five_hour_closeout_percent))
+    print("选择本项目的工作偏好；现有设置会保留，回车接受括号内默认。")
+    preferences["quota_mode"] = _choose("连接方式", [
+        ("auto", "自动识别"), ("subscription", "ChatGPT计划"),
+        ("api", "API/中转"), ("off", "仅阶段交接")], preferences["quota_mode"])
+    preferences["report_mode"] = _choose("汇报方式", [
+        ("full", "每份工作报告附八条（作者默认）"),
+        ("milestones", "阶段结束与交付附八条"), ("concise", "简洁正文")], preferences["report_mode"])
+    preferences["tone"] = _choose("表达方式", [
+        ("direct", "直接表达、少说不"), ("neutral", "中性表达")], preferences["tone"])
+    return preferences
 
 
 def main(argv=None):
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", help="Existing project directory (default: current directory)")
     parser.add_argument("--source", help="Local repository root; no network access")
     parser.add_argument("--agent", choices=("codex", "claude"), default="codex")
     parser.add_argument("--dry-run", action="store_true", help="Preview with zero filesystem writes")
+    parser.add_argument("--configure", action="store_true", help="Choose connection, reporting and tone in three short prompts")
+    parser.add_argument("--quota-mode", choices=PREFERENCE_CHOICES["quota_mode"])
+    parser.add_argument("--report-mode", choices=PREFERENCE_CHOICES["report_mode"])
+    parser.add_argument("--tone", choices=PREFERENCE_CHOICES["tone"])
+    parser.add_argument("--five-hour-closeout-percent", type=float,
+                        help="Plan allowance reserve, 0 through 100 (default: 30; existing choice retained)")
     args = parser.parse_args(argv)
     try:
-        result = install(args.project, args.source, args.agent, args.dry_run)
+        choices = (_configure(args) if args.configure else
+                   _preference_overrides(args.quota_mode, args.report_mode, args.tone,
+                                         args.five_hour_closeout_percent))
+        result = install(args.project, args.source, args.agent, args.dry_run, **choices)
         prefix = "Would update" if result["dry_run"] else "Updated"
         if not result["changed"]:
             print("Already installed; runtime files and managed rules are unchanged.")
@@ -450,6 +610,7 @@ def main(argv=None):
             print("Dry run: no files, directories, locks, or backups written.")
         elif result["backup_path"]:
             print("Backup (prior private content; do not publish): " + result["backup_path"])
+        print("Project preferences: " + json.dumps(result["preferences"], ensure_ascii=False, sort_keys=True))
         if not result["dry_run"]:
             print("Open a new agent session and verify which rules and skill it actually reads.")
         return 0

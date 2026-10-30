@@ -29,7 +29,8 @@ def percentage(value):
 
 def assess(snapshot, estimated_percent, now=None, max_age_seconds=300):
     """Conservative advice, not a prediction or an enforced host-level gate."""
-    cost = percentage(estimated_percent)
+    unmetered = isinstance(snapshot, dict) and snapshot.get('quota') == 'NOT_APPLICABLE'
+    cost = None if unmetered and estimated_percent is None else percentage(estimated_percent)
     now = time.time() if now is None else now
     decision = {'admission': 'UNKNOWN', 'reason': 'Quota snapshot unavailable',
                 'estimated_percent': cost, 'projected_remaining_percent': None}
@@ -39,6 +40,10 @@ def assess(snapshot, estimated_percent, now=None, max_age_seconds=300):
             return decision
         if not -30 <= now - stamp <= max_age_seconds:
             decision['reason'] = 'Quota snapshot is stale or has a future timestamp'
+            return decision
+        if snapshot.get('quota') == 'NOT_APPLICABLE':
+            decision.update(admission='UNMETERED',
+                            reason='Plan percentage is not applicable; use the service budget and save progress in small stages')
             return decision
         threshold = percentage(snapshot['five_hour_closeout_percent'])
         five = percentage(snapshot['five_hour']['remaining_percent'])
@@ -142,14 +147,8 @@ def resume(path, task_id, workspace):
             ], 'executes_next_action': False}
 
 
-def live_snapshot(threshold):
-    executable = checker.find_codex()
-    if not executable:
-        return {'quota': 'UNKNOWN', 'reason': 'Codex CLI not found'}
-    try:
-        return checker.build_snapshot(checker.read_rate_limits(executable), threshold)
-    except (OSError, RuntimeError, TimeoutError, ValueError, KeyError, TypeError):
-        return {'quota': 'UNKNOWN', 'reason': 'Live quota read failed'}
+def live_snapshot(threshold, quota_mode='auto'):
+    return checker.get_snapshot(threshold, quota_mode)
 
 
 def main():
@@ -159,8 +158,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     admit = commands.add_parser('admit', help='Read live quota and advise on a conservatively estimated stage')
-    admit.add_argument('--estimated-percent', type=float, required=True)
+    admit.add_argument('--estimated-percent', type=float,
+                       help='Conservative plan percentage estimate; API/off mode needs no invented percentage')
     admit.add_argument('--five-hour-closeout-percent', type=float, default=30)
+    admit.add_argument('--quota-mode', choices=checker.QUOTA_MODES, default='auto')
     save = commands.add_parser('save', help='Atomically save an explicitly prepared handoff JSON')
     save.add_argument('--file', type=Path, required=True)
     save.add_argument('--input', type=Path, required=True)
@@ -171,11 +172,10 @@ def main():
     args = parser.parse_args()
     try:
         if args.command == 'admit':
-            cost = percentage(args.estimated_percent)
             threshold = percentage(args.five_hour_closeout_percent)
-            snapshot = live_snapshot(threshold)
-            result = dict(assess(snapshot, cost), quota=snapshot)
-            code = {'ALLOW': 0, 'SPLIT': 10, 'CLOSEOUT': 10, 'UNKNOWN': 20}[result['admission']]
+            snapshot = live_snapshot(threshold, args.quota_mode)
+            result = dict(assess(snapshot, args.estimated_percent), quota=snapshot)
+            code = {'ALLOW': 0, 'SPLIT': 10, 'CLOSEOUT': 10, 'UNKNOWN': 20, 'UNMETERED': 0}[result['admission']]
         elif args.command == 'save':
             payload = json.loads(args.input.read_text(encoding='utf-8'))
             saved = save_checkpoint(args.file, payload)

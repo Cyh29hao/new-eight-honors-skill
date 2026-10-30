@@ -26,11 +26,15 @@ The [Chinese homepage](README.md#实际工作会变成什么样) shows complete 
 
 The original wording, historical **27%**, **21:26** reset time, unfinished work, and continuation status remain. Only local filesystem paths are redacted. The records reproduce the local Codex chat layout; tool rows summarize the recorded tool results, and assistant messages retain their original wording. [Read and copy the complete original records](docs/examples/real-work.md).
 
-**Have Codex close out before its allowance runs out.** During long tasks, the skill directs it to check live allowance, save results at the reserve line, and explain unfinished work and the exact next step. Live quota queries require a working, signed-in Codex CLI.
+**ChatGPT plan users:** check the actual connection, read the plan allowance, and close out at the chosen reserve. **API and relay users:** choose API mode and use the provider's actual budget; the same collaboration and handoff principles apply. A previously signed-in Plus account's balance is separate from relay usage.
 
 The default **30%** five-hour reserve comes from the author's Plus workflow: leave room to inspect the result, give feedback, and revise over further turns. Set it to **10%** or another value that suits your work. Automatic wakeup needs a host scheduler; the recorded project explicitly says it had not been configured. [Quota and continuation](references/quota-and-recovery.md).
 
 ## The eight principles
+
+My recent experience with native Codex has felt increasingly frustrating: confusing reports, blind execution, defensive answers, and allowance running out with work unfinished. I still find its ability to act on whole projects hard to replace, so I have spent more time on prompt engineering than I expected.
+
+**I want to give Codex a little more humanity:** understand the person, exercise judgment, take responsibility for finding a way forward, and explain the work clearly. These are the working habits this skill makes explicit.
 
 The earlier AI coding “eight honors and eight shames” emphasized looking things up, confirming requirements, reusing code, and testing. This version keeps the memorable form and extends it to goals, judgment, real product use, and handoffs. [Background and sources](docs/provenance.md).
 
@@ -82,24 +86,28 @@ Test the critical route with a small real result. Reassess the conditions and ev
 
 Tools fill the screen, yet you keep asking what is done, why the direction changed, and whether anything works. A bare file or eight empty slogans still leaves you guessing.
 
-Give brief written updates at discoveries, decisions, blockers, and stage endings. Report results and gaps in normal prose first, then explain the actual work under the eight principles at the end.
+Lead with a judgment, recommendation, actual result, and next step. Cut defensive disclaimers and unasked-for counterexamples; explain real constraints alongside practical alternatives. Keep facts and risks accurate, and use the reporting frequency the user selected.
 
 ## Install
 
 **Codex is the recommended home for this skill.** The agreements grew out of the author's native GPT/Codex workflow: define the goal, let the agent choose methods and use tools, then inspect the result and explain the work. Project rules, quota queries, and handoff helpers are supplied for Codex first.
 
+**Choose your habits before installing:** plan or API/relay connection, full eight-point reports or stage-only or concise reports, and direct or neutral tone. API/relay users explicitly choose API mode. Preferences stay in this project's `AGENTS.md`, can be changed later, and survive ordinary updates. [Customization](docs/customization.md).
+
 Give your agent this prompt:
 
 ```text
 Install and enable https://github.com/Cyh29hao/new-eight-honors-skill in this project.
-Read the repository instructions and use scripts/install.py. Back up existing rules,
-preserve custom content, report the actual changes, and confirm a new session can read them.
+Read the README and ask me once about connection, reporting frequency, and tone; offer defaults.
+Use the matching scripts/install.py options, selecting api mode for API/relay use.
+Back up existing rules, preserve custom content, read back the selected preferences,
+and confirm the experience with a familiar small task. Preserve preferences on ordinary updates.
 ```
 
-Or run in the project directory with Python 3.9+:
+Or run the three-question setup in the project directory with Python 3.9+:
 
 ```sh
-python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/new-eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))"
+python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/new-eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))" --configure
 ```
 
 | What you need to know | What happens |
@@ -111,9 +119,9 @@ python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercont
 
 [Installation, updates, and backups](docs/installation.md) · [Capabilities and models](docs/compatibility.md)
 
-**Setting principles for an agent is also choosing how we work together.**
+**Give Codex a little more humanity.**
 
-Align on the goal, leave room for judgment, judge the result through actual use, and make the work easy to continue. New Eight Honors expresses both the agent's working agreements and my own preferences for work and management.
+Judgment, consideration, and a willingness to take responsibility: work that gets done and feels comfortable to collaborate on. New Eight Honors expresses how I hope people and intelligent agents can work together. Make it your own.
 
 [Design origin](docs/design-origin.md) · [Sources](docs/provenance.md) · MIT License
 

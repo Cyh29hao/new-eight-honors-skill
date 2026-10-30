@@ -1,5 +1,7 @@
 """Meaningful invariants for quota admission and durable task handoffs."""
 
+import contextlib
+import io
 import json
 import os
 from pathlib import Path
@@ -20,6 +22,32 @@ def snapshot(five=80, week=50, state="OK", checked_at=1000):
 
 
 class AdmissionTests(unittest.TestCase):
+    def test_api_mode_uses_manual_budget_advice_not_plan_admission(self):
+        value = workflow.checker.not_applicable_snapshot(30, 'API budget source', 'api')
+        result = workflow.assess(value, 10)
+        self.assertEqual(result['admission'], 'UNMETERED')
+        self.assertIsNone(result['projected_remaining_percent'])
+        self.assertIn('service budget', result['reason'])
+
+    def test_admit_forwards_mode_and_runs_without_a_cli_for_api(self):
+        output = io.StringIO()
+        with patch.object(sys, 'argv', ['workflow', 'admit', '--estimated-percent', '10', '--quota-mode', 'api']), \
+             patch.object(workflow.checker, 'find_codex') as find, contextlib.redirect_stdout(output):
+            self.assertEqual(workflow.main(), 0)
+        result = json.loads(output.getvalue())
+        self.assertEqual(result['admission'], 'UNMETERED')
+        self.assertEqual(result['quota']['quota'], 'NOT_APPLICABLE')
+        find.assert_not_called()
+
+    def test_api_admit_needs_no_fictional_plan_percentage(self):
+        output = io.StringIO()
+        with patch.object(sys, 'argv', ['workflow', 'admit', '--quota-mode', 'api']), contextlib.redirect_stdout(output):
+            self.assertEqual(workflow.main(), 0)
+        result = json.loads(output.getvalue())
+        self.assertEqual(result['admission'], 'UNMETERED')
+        self.assertIsNone(result['estimated_percent'])
+        self.assertIsNone(result['projected_remaining_percent'])
+
     def test_allows_a_stage_that_preserves_reserve(self):
         result = workflow.assess(snapshot(), 20, now=1000)
         self.assertEqual(result["admission"], "ALLOW")

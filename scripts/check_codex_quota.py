@@ -1,6 +1,7 @@
 """Read the signed-in Codex account's quota through the official App Server API.
 
-Exit codes: 0 = enough allowance, 10 = closeout, 20 = quota unavailable.
+Exit codes: 0 = enough plan allowance or not applicable, 10 = closeout,
+20 = quota unavailable. NOT_APPLICABLE carries no budget authorization.
 This script never reads credentials or invokes a reset-consuming method.
 """
 
@@ -21,6 +22,7 @@ from pathlib import Path
 CLOSEOUT_REMAINING_PERCENT = 30.0
 WEEKLY_NOTICE_REMAINING_PERCENT = 30.0
 TIMEOUT_SECONDS = 20
+QUOTA_MODES = ("auto", "subscription", "api", "off")
 
 
 def find_codex():
@@ -30,7 +32,45 @@ def find_codex():
     return shutil.which("codex.exe") or shutil.which("codex.cmd") or shutil.which("codex")
 
 
-def read_rate_limits(executable):
+def classify_connection(account_result, config_result):
+    """Inspect only routing metadata; never expose account/config payloads."""
+    if not isinstance(account_result, dict):
+        return "UNKNOWN", "unconfirmed", "Account mode could not be confirmed"
+    account = account_result.get("account")
+    account_type = account.get("type") if isinstance(account, dict) else None
+    if account_type in ("apiKey", "apikey", "amazonBedrock"):
+        return "NOT_APPLICABLE", "api", "API/provider billing uses its own budget source"
+    if account_result.get("requiresOpenaiAuth") is False:
+        return "NOT_APPLICABLE", "api", "Active provider does not use ChatGPT plan allowance"
+    if account_result.get("requiresOpenaiAuth") is not True:
+        return "UNKNOWN", "unconfirmed", "Active provider authentication requirements could not be confirmed"
+    if account_type not in ("chatgpt", "chatgptAuthTokens"):
+        return "UNKNOWN", "unconfirmed", "No active ChatGPT plan account confirmed"
+    config = config_result.get("config") if isinstance(config_result, dict) else None
+    if not isinstance(config, dict):
+        return "UNKNOWN", "unconfirmed", "Active provider could not be confirmed"
+    provider = config.get("model_provider", config.get("modelProvider"))
+    if provider not in (None, "openai"):
+        return "UNKNOWN", "unconfirmed", "Custom provider selected; choose API mode or verify its budget source"
+    providers = config.get("model_providers", config.get("modelProviders", {}))
+    selected = providers.get("openai", {}) if isinstance(providers, dict) else {}
+    if not isinstance(selected, dict):
+        return "UNKNOWN", "unconfirmed", "Active provider could not be confirmed"
+    if selected.get("requires_openai_auth", selected.get("requiresOpenaiAuth")) is False:
+        return "NOT_APPLICABLE", "api", "Active provider does not use ChatGPT plan allowance"
+    endpoints = (selected.get("base_url", selected.get("baseUrl")), os.environ.get("OPENAI_BASE_URL"))
+    for endpoint in endpoints:
+        if endpoint is not None:
+            # Even an official API hostname can be API-billed. A configured URL
+            # does not prove it consumes the account's ChatGPT plan allowance.
+            return "UNKNOWN", "unconfirmed", "Custom endpoint selected; choose API mode or verify its budget source"
+    return "PLAN", "chatgpt_plan", "Confirmed ChatGPT plan route"
+
+
+def read_rate_limits(executable, quota_mode="auto"):
+    if quota_mode in ("api", "off"):
+        return {"_quota_context": {"quota": "NOT_APPLICABLE", "source": quota_mode,
+                "reason": "Plan quota checks are disabled for this selected mode"}}
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     process = subprocess.Popen(
         [executable, "app-server", "--stdio"],
@@ -80,11 +120,28 @@ def read_rate_limits(executable):
                 if "error" in message:
                     raise RuntimeError("App Server initialization failed")
                 send({"method": "initialized", "params": {}})
-                send({"method": "account/rateLimits/read", "id": 2})
+                send({"method": "account/read", "id": 2, "params": {"refreshToken": False}})
             elif message.get("id") == 2:
                 if "error" in message:
+                    raise RuntimeError("App Server could not confirm account mode")
+                account_result = message.get("result", {})
+                # Explicit API/Bedrock routes need no config or plan request.
+                state, source, reason = classify_connection(account_result, None)
+                if state == "NOT_APPLICABLE":
+                    return {"_quota_context": {"quota": state, "source": source, "reason": reason}}
+                send({"method": "config/read", "id": 3, "params": {"includeLayers": False}})
+            elif message.get("id") == 3:
+                state, source, reason = classify_connection(account_result, message.get("result", {}) if "error" not in message else None)
+                if state != "PLAN":
+                    return {"_quota_context": {"quota": state, "source": source, "reason": reason}}
+                send({"method": "account/rateLimits/read", "id": 4})
+            elif message.get("id") == 4:
+                if "error" in message:
                     raise RuntimeError("App Server could not read account rate limits")
-                return message.get("result", {})
+                result = message.get("result", {})
+                if isinstance(result, dict):
+                    result = dict(result, _quota_context={"quota": "PLAN", "source": "chatgpt_plan"})
+                return result
         raise TimeoutError("App Server quota read timed out")
     finally:
         if process.poll() is None:
@@ -141,6 +198,12 @@ def unknown_snapshot(threshold, reason):
     }
 
 
+def not_applicable_snapshot(threshold, reason, source):
+    snapshot = unknown_snapshot(threshold, reason)
+    snapshot.update(quota="NOT_APPLICABLE", source=source, weekly_notice="NOT_APPLICABLE")
+    return snapshot
+
+
 def build_snapshot(result, threshold=CLOSEOUT_REMAINING_PERCENT):
     """Build a safe quota summary without I/O or retaining the account response."""
     if not finite_number(threshold):
@@ -148,6 +211,15 @@ def build_snapshot(result, threshold=CLOSEOUT_REMAINING_PERCENT):
     snapshot = unknown_snapshot(threshold, "Invalid quota response")
     if not isinstance(result, dict):
         return snapshot
+    context = result.get("_quota_context")
+    if isinstance(context, dict):
+        # Reasons originate only in our routing code, not an upstream error payload.
+        state, source = context.get("quota"), context.get("source")
+        if state == "NOT_APPLICABLE" and source in ("api", "off"):
+            return not_applicable_snapshot(threshold, context["reason"], source)
+        if state == "UNKNOWN":
+            return unknown_snapshot(threshold, context["reason"])
+        snapshot["source"] = "chatgpt_plan"
     limits = result.get("rateLimits")
     if not limits:
         by_id = result.get("rateLimitsByLimitId")
@@ -208,8 +280,8 @@ def window_summary(window):
 def emit_snapshot(snapshot, as_json=False):
     if as_json:
         print(json.dumps(snapshot, allow_nan=False, separators=(",", ":")))
-    elif snapshot.get("reason") in {"Invalid closeout threshold", "Codex CLI not found", "Invalid quota response", "No Codex rate-limit bucket returned", "App Server quota read failed"}:
-        print(f"quota=UNKNOWN reason={snapshot['reason']}")
+    elif snapshot["quota"] in ("UNKNOWN", "NOT_APPLICABLE"):
+        print(f"quota={snapshot['quota']} source={snapshot.get('source', 'unconfirmed')} reason={snapshot['reason']}")
     else:
         print(
             f"quota={snapshot['quota']} plan={snapshot['plan']} "
@@ -217,12 +289,31 @@ def emit_snapshot(snapshot, as_json=False):
             f"banked_resets={snapshot['banked_resets']} weekly_notice={snapshot['weekly_notice']} "
             f"five_hour_closeout_percent={snapshot['five_hour_closeout_percent']:g}"
         )
-    return {"OK": 0, "CLOSEOUT": 10, "UNKNOWN": 20}[snapshot["quota"]]
+    return {"OK": 0, "CLOSEOUT": 10, "UNKNOWN": 20, "NOT_APPLICABLE": 0}[snapshot["quota"]]
+
+
+def get_snapshot(threshold=CLOSEOUT_REMAINING_PERCENT, quota_mode="auto"):
+    """Route-aware live check. API/off never start a process or query a plan."""
+    if not finite_number(threshold):
+        return unknown_snapshot(CLOSEOUT_REMAINING_PERCENT, "Invalid closeout threshold")
+    if quota_mode not in QUOTA_MODES:
+        return unknown_snapshot(threshold, "Invalid quota mode")
+    if quota_mode in ("api", "off"):
+        return not_applicable_snapshot(threshold, "Use the selected service's actual budget and save progress by stage", quota_mode)
+    executable = find_codex()
+    if not executable:
+        return unknown_snapshot(threshold, "Codex CLI not found")
+    try:
+        return build_snapshot(read_rate_limits(executable, quota_mode), threshold)
+    except (OSError, RuntimeError, TimeoutError, ValueError, KeyError, TypeError, OverflowError):
+        return unknown_snapshot(threshold, "App Server quota read failed")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--json', action='store_true', help='Emit one safe schema-versioned JSON snapshot.')
+    parser.add_argument('--quota-mode', choices=QUOTA_MODES, default='auto',
+                        help='Budget source: auto/subscription checks the actual route; api/off skips plan quota.')
     parser.add_argument(
         '--five-hour-closeout-percent', type=float,
         default=CLOSEOUT_REMAINING_PERCENT,
@@ -231,15 +322,7 @@ def main():
     options = parser.parse_args()
     if not finite_number(options.five_hour_closeout_percent):
         return emit_snapshot(unknown_snapshot(CLOSEOUT_REMAINING_PERCENT, "Invalid closeout threshold"), options.json)
-    executable = find_codex()
-    if not executable:
-        return emit_snapshot(unknown_snapshot(options.five_hour_closeout_percent, "Codex CLI not found"), options.json)
-    try:
-        result = read_rate_limits(executable)
-        return emit_snapshot(build_snapshot(result, options.five_hour_closeout_percent), options.json)
-    except (OSError, RuntimeError, TimeoutError, ValueError, KeyError, TypeError, OverflowError):
-        # Never print raw exception text: it may contain an upstream account payload.
-        return emit_snapshot(unknown_snapshot(options.five_hour_closeout_percent, "App Server quota read failed"), options.json)
+    return emit_snapshot(get_snapshot(options.five_hour_closeout_percent, options.quota_mode), options.json)
 
 
 if __name__ == "__main__":
