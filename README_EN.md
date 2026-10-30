@@ -1,57 +1,110 @@
-<div align="center">
-
 # New Eight Honors.skill
 
-### Give your agent a few working principles.
+**Eight working agreements, built first for Codex users.** Put them in `AGENTS.md`: let the agent make decisions, check the actual product, and leave a useful handoff.
 
-**Proactive updates · Eight-point reviews · Quota closeout**
+[Install](#install) · [Real work records](#what-the-work-looks-like) · [The eight principles](#the-eight-principles) · [中文首页](README.md)
 
-[中文首页](README.md) · [Real project records](docs/examples/real-work.md) · [Install](#install) · [Design](docs/design-origin.md)
+<picture>
+  <source media="(max-width: 600px)" srcset="assets/principles-mobile.png" />
+  <img src="assets/principles-desktop.png" alt="New Eight Honors: the complete eight principles, shown as an agent's working agreements" width="960" />
+</picture>
 
-</div>
+## What the work looks like
 
-![The complete eight principles](assets/principles-desktop.png)
+The [Chinese homepage](README.md#实际工作会变成什么样) shows complete messages from the author's actual project on **October 29, 2026**. The task was to check announcements, assignments, and class requirements across nine courses. These local working agreements were later packaged as this skill.
 
-An Agent Skill that brings your working agreements into a project's `AGENTS.md`: understand the goal, verify claims, reuse mature solutions, make decisions within authority, inspect real results, preserve progress, stop wasted effort, and explain the work.
+- **A complete report:** results, six concrete findings, coverage gaps, allowance, and next steps come first. The eight-point explanation follows in the same reply. Both parts are displayed together.
+- **Closeout with context:** the report showed 33% remaining; subsequent live checks returned 31%, then 27% after checking 36 course modules. At the then-configured 30% reserve, the agent saved its progress and delivered a complete closeout report, including its eight-point explanation.
 
-## What it looks like in practice
+The original wording, historical **27%**, **21:26** reset time, unfinished work, and continuation status remain. Only local filesystem paths are redacted. Assistant messages, tool summaries, and editorial labels are distinguished in the typeset records. [Read and copy the complete original records](docs/examples/real-work.md).
 
-The Chinese homepage shows original excerpts from an actual project on **October 29, 2026**: the complete current eight-principle appendix, quota closeout, and a foldout progress update. Only local filesystem paths are redacted; the historical 27% allowance and 21:26 reset time remain. The images are typeset original messages, not native app screenshots.
+**Have Codex close out before its allowance runs out.** During long tasks, the skill directs it to check live allowance, save results at the reserve line, and explain unfinished work and the exact next step. Live quota queries require a working, signed-in Codex CLI.
 
-[Read the original records](docs/examples/real-work.md). They preserve unfinished work and unverified parts; they are not a controlled model comparison.
+The default **30%** five-hour reserve comes from the author's Plus workflow: leave room to inspect the result, give feedback, and revise over further turns. Set it to **10%** or another value that suits your work. Automatic wakeup needs a host scheduler; the recorded project explicitly says it had not been configured. [Quota and continuation](references/quota-and-recovery.md).
 
-## At a glance
+## The eight principles
 
-| Question | Answer |
-| --- | --- |
-| What is it? | A reusable skill, persistent project agreements, and Codex quota/handoff helpers. |
-| What does it address? | Wrong goals, unsupported claims, unnecessary rebuilding, superficial acceptance, and missing handoffs. |
-| What changes? | Visible progress, decisions backed by evidence, an eight-point explanation after work reports, and early closeout. |
-| What files change? | Project skill files and one managed block in `AGENTS.md`, with prior rules backed up. |
-| What do I need? | Python 3.9+ for the installer; a tool-capable agent for actual file work. |
+The earlier AI coding “eight honors and eight shames” emphasized looking things up, confirming requirements, reusing code, and testing. This version keeps the memorable form and extends it to goals, judgment, real product use, and handoffs. [Background and sources](docs/provenance.md).
+
+**Each principle has its own job:** goals, evidence, reuse, judgment, acceptance, continuity, cost, and communication. They guide the work together.
+
+### 1. Understand the outcome
+
+The agent ticks every word in the request, works for hours, and still leaves the original problem untouched. It confuses actions performed with something useful accomplished for you.
+
+Establish who will use the result, what they need to accomplish, and the time and resource constraints. Choose the approach and judge completion against that outcome.
+
+### 2. Verify before claiming
+
+It draws a conclusion before opening the source, or declares a fix before running the command. A guess arrives dressed as a fact, and your next decision inherits the mistake.
+
+Check primary sources, live state, or real execution results for consequential claims. Make observed facts, informed judgments, and open questions easy to tell apart.
+
+### 3. Find a better solution before rebuilding
+
+It blindly grinds through your suggested implementation without asking whether a higher-level or ready-made solution would solve the problem better. You get a pile of new code and an underwhelming result.
+
+Compare changing a setting, using an existing tool, adapting a mature workflow, and building something new. Inspect the candidates and explain the choice. Small edits stay small.
+
+### 4. Exercise judgment
+
+Your casual suggestion becomes a sacred instruction, even when the approach is failing. Then a routine decision produces another “Should I continue?”, leaving you to do the agent's product thinking.
+
+Separate the intended outcome, proposed methods, and explicit constraints. Own ordinary choices within the authorization. Explain and adjust an approach that works against the goal; use a small experiment when there is a real uncertainty. Ask when the decision changes the goal or crosses an authority boundary.
+
+### 5. Try the actual product
+
+The product is finished and every test supposedly passes. Then you use it, and the experience is awful. You become the tester, finding problems the agent should have caught before handing it over.
+
+Walk through the user's actual task from entry to result. Inspect the page and interactions, read the rendered document, and check an automation's real output. Fix the problems you find, and distinguish technical checks, the observed experience, and decisions still needing the user.
+
+### 6. Leave a usable handoff
+
+Work stops halfway with no readable account of what happened. After allowance resets, you dig through chat, find the files, explain the background again, and guess what the agent intended to do next.
+
+Save results, decisions, verification gaps, and the next action at meaningful stages. Close out near the reserve line and send the handoff in the conversation. On resumption, check the latest instructions and current files before continuing from the existing work.
+
+### 7. Stop wasting effort
+
+The same failure gets another slightly different retry. Plans, checks, and “working on it” updates accumulate while your allowance falls and the problem stays put.
+
+Test the critical route with a small real result. Reassess the conditions and evidence after failure, change route when needed, and finish once the outcome and necessary checks are satisfied.
+
+### 8. Keep the user informed
+
+Tools fill the screen, yet you keep asking what is done, why the direction changed, and whether anything works. A bare file or eight empty slogans still leaves you guessing.
+
+Give brief written updates at discoveries, decisions, blockers, and stage endings. Report results and gaps in normal prose first, then explain the actual work under the eight principles at the end.
 
 ## Install
 
-Run in your project directory:
+**Codex is the recommended home for this skill.** The agreements grew out of the author's native GPT/Codex workflow: define the goal, let the agent choose methods and use tools, then inspect the result and explain the work. Project rules, quota queries, and handoff helpers are supplied for Codex first.
+
+Give your agent this prompt:
+
+```text
+Install and enable https://github.com/Cyh29hao/new-eight-honors-skill in this project.
+Read the repository instructions and use scripts/install.py. Back up existing rules,
+preserve custom content, report the actual changes, and confirm a new session can read them.
+```
+
+Or run in the project directory with Python 3.9+:
 
 ```sh
 python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Cyh29hao/new-eight-honors-skill/main/scripts/install.py',timeout=20).read(262144))"
 ```
 
-The command downloads and executes the readable [installer](scripts/install.py). It installs the runtime in `.agents/skills/eight-honors`, backs up existing rules, and merges one marked block. Repeating it does not append duplicate rules. Custom edits are protected. Add `--dry-run` for a zero-write preview, `--project PATH` to choose a project, or `--agent claude` for project Claude paths.
+| What you need to know | What happens |
+| --- | --- |
+| Files changed | The runtime goes in `.agents/skills/eight-honors`. Existing rules are backed up before one managed block is merged into `AGENTS.md`; content outside it is preserved. |
+| Where to customize | Change reporting preferences and the quota reserve in the project's `AGENTS.md`, using the same threshold for quota checks. |
+| How to start | Open a new Codex session and invoke `$eight-honors`. The invocation name remains compatible with existing installations. |
+| Other agents | File- and tool-capable agents can use the principles. Add `--agent claude` for Claude Code installation and invoke `/eight-honors`; the supplied quota queries target Codex. |
 
-Open a new Codex session and invoke `$eight-honors`. For Claude Code use `/eight-honors`; actual Claude session loading has not been certified. [Installation details](docs/installation.md).
+[Installation, updates, and backups](docs/installation.md) · [Capabilities and models](docs/compatibility.md)
 
-The repository and display name are now New Eight Honors. The invocation name, installation directory, managed markers and ownership format remain compatible with existing installations.
+These agreements grew from repeated work with Codex: understand the purpose, allow judgment about methods, inspect the real experience, and leave work ready to continue. Small tasks stay direct; larger tasks get the checks and handoffs they need.
 
-You can also give a file-capable agent the repository URL and ask it to read the README, install the runtime, back up and merge project rules, preserve custom content, and report which files changed.
-
-## Your preferences, your rules
-
-By default, work reports give results, evidence and limitations first, then explain the work under the eight full Chinese principle titles. Pure Q&A skips the appendix; small tasks stay small. Change reporting frequency in your project rules.
-
-The default 30% five-hour reserve reflects the author's Plus workflow: leave room to inspect results, give feedback and revise over further turns. It is adjustable. Weekly low allowance is informational; actual exhaustion requires closeout. The quota helpers use Codex's read-only App Server interface. `resume` reads historical handoffs; actual wakeup needs a host scheduler.
-
-The earlier coding “eight honors and eight shames” concept already existed. This version separates goals, evidence, reuse, judgment, acceptance, continuity, cost and communication for broader agent work. [Design origin](docs/design-origin.md) · [Sources](docs/provenance.md) · [Capabilities and models](docs/compatibility.md) · [Validation](docs/validation.md)
+[Design origin](docs/design-origin.md) · [Sources](docs/provenance.md) · MIT License
 
 By [Cyh29hao](https://github.com/Cyh29hao), also the author of [Shuixian.skill](https://github.com/Cyh29hao/shuixian-skill). MIT License.

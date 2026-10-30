@@ -4,9 +4,9 @@
 
 ## 图片
 
-- [新版八条全文图](../assets/principles-desktop.png)：1480 × 950，逐条附痛点注解，适合横向分享。
-- [新版八条全文竖图](../assets/principles-mobile.png)：900 × 1380，适合手机阅读与小红书配图。
-- [主动汇报](../assets/records/progress-mobile.png)、[完整八条](../assets/records/eight_principles-mobile.png)、[额度收尾](../assets/records/quota_closeout-mobile.png)：2026-10-29 实际项目的原文排版，须保留原文与节选标记。
+- [新版八条全文图](../assets/principles-desktop.png)：1160 × 1110，“Agent 上岗须知”风格，八耻与八荣对照。
+- [新版八条全文竖图](../assets/principles-mobile.png)：760 × 1500，八条逐条分行，适合手机阅读与小红书配图。
+- 完整报告由[正常正文](../assets/records/normal_report-mobile.png)和[末尾八条](../assets/records/eight_principles-mobile.png)连续展示；[额度上下文](../assets/records/quota_context-mobile.png)与[完整收尾](../assets/records/quota_closeout-mobile.png)保留真实时间顺序，均来自2026-10-29实际项目。分享时保留消息身份与编辑标记。
 - 同目录保留 SVG 源文件，文字可编辑，不必重新生成整张图。
 
 ## 标题候选
@@ -19,7 +19,7 @@
 
 前阵子小火过的 AI 编程八荣八耻，大家可能都见过。
 
-我自己和 Agent 做研究、写代码、改文档、跑长任务时，也慢慢攒出了一套八条。最近整理成了一个 skill，叫「新八荣八耻.skill」。模型在进化，工作作风也得跟上。
+我自己和 Agent 做研究、写代码、改文档、跑长任务时，也慢慢攒出了一套八条。最近整理成了一个最适合 Codex 用户的 skill，叫「新八荣八耻.skill」。模型在进化，工作作风也得跟上。
 
 我最在意几件事：
 
