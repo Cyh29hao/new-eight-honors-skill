@@ -22,6 +22,14 @@ def snapshot(five=80, week=50, state="OK", checked_at=1000):
 
 
 class AdmissionTests(unittest.TestCase):
+    def test_weekly_equivalent_limits_admission_and_stage_projection(self):
+        value = snapshot(five=80, week=6)
+        result = workflow.assess(value, 6, now=1000)
+        self.assertEqual(result['projected_remaining_percent'], 30)
+        self.assertEqual(result['admission'], 'SPLIT')
+        value['weekly']['remaining_percent'] = 2
+        self.assertEqual(workflow.assess(value, 0, now=1000)['admission'], 'CLOSEOUT')
+
     def test_api_mode_uses_manual_budget_advice_not_plan_admission(self):
         value = workflow.checker.not_applicable_snapshot(30, 'API budget source', 'api')
         result = workflow.assess(value, 10)

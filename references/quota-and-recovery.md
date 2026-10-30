@@ -28,13 +28,13 @@ python scripts/check_codex_quota.py --quota-mode auto --json
 | 结果 | 含义 | Agent 应做什么 |
 | --- | --- | --- |
 | `OK` / 退出码 0 | 已识别的五小时与周窗口足够 | 按小阶段继续，阶段节点再查 |
-| `CLOSEOUT` / 10 | 五小时剩余 <=30%，或周额度耗尽 | 不开新长步骤；保存、最小检查、交付未完成报告 |
+| `CLOSEOUT` / 10 | 两窗口取较低的五小时等效余量 <=30% | 不开新长步骤；保存、最小检查、交付未完成报告 |
 | `UNKNOWN` / 20 | 无 CLI、未取得有效窗口、超时或数据格式不支持 | 说明不可用；查可见 Usage 或 `/status`，提前保存，不编余额 |
 | `NOT_APPLICABLE` / 0 | 当前模式/服务适用API或手动预算，窗口为空 | 按服务商预算与小阶段交接推进；此退出码只表示分流正常，没有额度充足的含义 |
 
 API模式可直接运行`python scripts/check_codex_quota.py --quota-mode api --json`，无需CLI或账户查询。`admit --quota-mode api`返回`UNMETERED`，预计消耗与余额都为`null`，按实际服务预算与阶段保存来安排工作。
 
-周剩余 <=30% 是 `weekly_notice=LOW`，五小时足够时继续工作。只要实际周耗尽就收尾。脚本按窗口的 `windowDurationMins` 匹配 300/10080 分钟，未知时长不冒充五小时窗口；旧响应未给时长时才兼容 primary/secondary 的传统位置。
+默认用五小时等效余量判断预留线：`effective = min(五小时剩余百分比, 周剩余百分比 × 6)`。默认预留线30%，用户新阈值优先；周2%等效五小时12%。这是作者的预算换算策略，原始余额与重置时间保持原样。 `weekly_notice`保留原始周窗口提示；收尾与阶段准入按等效余量判断。预计消耗也使用五小时百分比单位。脚本按窗口的 `windowDurationMins` 匹配 300/10080 分钟，未知时长不冒充五小时窗口；旧响应未给时长时才兼容 primary/secondary 的传统位置。
 
 ```sh
 python scripts/check_codex_quota.py --quota-mode subscription --five-hour-closeout-percent 25 --json

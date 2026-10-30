@@ -48,12 +48,13 @@ def assess(snapshot, estimated_percent, now=None, max_age_seconds=300):
         threshold = percentage(snapshot['five_hour_closeout_percent'])
         five = percentage(snapshot['five_hour']['remaining_percent'])
         week = percentage(snapshot['weekly']['remaining_percent'])
-        if snapshot['quota'] == 'CLOSEOUT' or five <= threshold or week <= 0:
+        effective = min(five, week * 6)
+        if snapshot['quota'] == 'CLOSEOUT' or effective <= threshold:
             decision.update(admission='CLOSEOUT', reason='Current allowance requires closeout')
         elif snapshot['quota'] != 'OK':
             return decision
         else:
-            projected = five - cost
+            projected = effective - cost
             decision['projected_remaining_percent'] = projected
             decision.update(admission='SPLIT' if projected <= threshold else 'ALLOW',
                             reason='Estimate reaches the closeout reserve; split or defer the stage'

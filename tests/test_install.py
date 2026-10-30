@@ -162,7 +162,7 @@ class ProjectInstallTests(unittest.TestCase):
         text = text.replace("`quota_mode=auto`", "`quota_mode=api`")
         text = text.replace("`report_mode=full`", "`report_mode=concise`")
         text = text.replace("`tone=direct`", "`tone=neutral`")
-        text = text.replace("五小时剩余 30%", "五小时剩余 11%")
+        text = text.replace("五小时等效余量 30%", "五小时等效余量 11%")
         self.rules.write_text(text, encoding="utf-8")
         result = self.install()
         self.assertEqual(result["preferences"], {

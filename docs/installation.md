@@ -21,7 +21,7 @@ Agent代装时，先一次问清三项并给推荐，用户可回复“用作者
 | `--quota-mode` | `auto`（默认）、`subscription`、`api`、`off` |
 | `--report-mode` | `full`（作者默认：每份报告八条）、`milestones`（日常推荐：阶段/最终八条）、`concise`（正文为主） |
 | `--tone` | `direct`（默认：直接有主见）、`neutral`（中性平实）；都少免责、主动给建议 |
-| `--five-hour-closeout-percent` | 计划预留线，默认30；例如用户选10时传10 |
+| `--five-hour-closeout-percent` | 五小时等效余量预留线，默认30；按min(五小时%, 周%×6)判断，用户选10时传10 |
 
 例如已克隆后在项目安装API、轻量汇报模式：
 

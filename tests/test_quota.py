@@ -22,6 +22,21 @@ def response(five_used=20, weekly_used=40):
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_weekly_allowance_is_converted_before_reserve_decision(self):
+        result = quota.build_snapshot(response(20, 98), 10)
+        self.assertEqual(result['weekly_equivalent_percent'], 12)
+        self.assertEqual(result['effective_remaining_percent'], 12)
+        self.assertEqual(result['quota'], 'OK')
+        self.assertEqual(quota.build_snapshot(response(20, 98), 12)['quota'], 'CLOSEOUT')
+        self.assertEqual(quota.build_snapshot(response(20, 95))['quota'], 'CLOSEOUT')
+
+    def test_effective_balance_keeps_original_windows_and_uses_lower_value(self):
+        result = quota.build_snapshot(response(92, 98), 10)
+        self.assertEqual(result['effective_remaining_percent'], 8)
+        self.assertEqual(result['five_hour']['remaining_percent'], 8)
+        self.assertEqual(result['weekly']['remaining_percent'], 2)
+        self.assertEqual(result['quota'], 'CLOSEOUT')
+
     def test_five_hour_closeout_boundary(self):
         for used, expected in ((69.9, "OK"), (70, "CLOSEOUT"), (100, "CLOSEOUT")):
             with self.subTest(used=used):

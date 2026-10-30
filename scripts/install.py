@@ -264,7 +264,7 @@ def _saved_preferences(original):
             if len(matches) != 1:
                 raise ValueError("Missing or duplicate visible preference")
             visible[key] = matches[0]
-        reserves = re.findall(r"(?m)^- 计划预留线：五小时剩余 ([^%\n]+)%", block)
+        reserves = re.findall(r"(?m)^- 计划预留线：五小时(?:剩余|等效余量) ([^%\n]+)%", block)
         if len(reserves) != 1:
             raise ValueError("Missing or duplicate visible reserve")
         visible["five_hour_closeout_percent"] = float(reserves[0])
@@ -300,7 +300,7 @@ def _personalized_fragment(fragment, preferences):
                + "- 连接与额度（`quota_mode=" + quota + "`）：" + quota_text + "\n"
                + "- 汇报方式（`report_mode=" + preferences["report_mode"] + "`）：" + report_text + "\n"
                + "- 表达方式（`tone=" + preferences["tone"] + "`）：" + tone_text + "\n"
-               + "- 计划预留线：五小时剩余 " + threshold + "%（仅适用于真实计划额度）。\n"
+               + "- 计划预留线：五小时等效余量 " + threshold + "%（按min(五小时剩余%, 周剩余%×6)判断，仅适用于真实计划额度）。\n"
                + "- 调用配套额度工具时使用 `--quota-mode " + quota
                + " --five-hour-closeout-percent " + threshold
                + "`；checker 与 admit 保持相同参数。\n")

@@ -232,7 +232,13 @@ def build_snapshot(result, threshold=CLOSEOUT_REMAINING_PERCENT):
     snapshot["weekly"] = window_snapshot(week)
     five_remaining = snapshot["five_hour"]["remaining_percent"]
     week_remaining = snapshot["weekly"]["remaining_percent"]
-    five_hour_low = five_remaining is not None and five_remaining <= threshold
+    weekly_equivalent = week_remaining * 6 if week_remaining is not None else None
+    known = [x for x in (five_remaining, weekly_equivalent) if x is not None]
+    effective = min(known) if len(known) == 2 else None
+    snapshot["weekly_equivalent_percent"] = weekly_equivalent
+    snapshot["effective_remaining_percent"] = effective
+    snapshot["weekly_equivalence_factor"] = 6
+    five_hour_low = any(x <= threshold for x in known)
     weekly_exhausted = week_remaining is not None and week_remaining <= 0
     snapshot["quota"] = (
         "CLOSEOUT" if five_hour_low or weekly_exhausted
@@ -287,7 +293,9 @@ def emit_snapshot(snapshot, as_json=False):
             f"quota={snapshot['quota']} plan={snapshot['plan']} "
             f"five_hour=[{format_window(snapshot['five_hour'])}] weekly=[{format_window(snapshot['weekly'])}] "
             f"banked_resets={snapshot['banked_resets']} weekly_notice={snapshot['weekly_notice']} "
-            f"five_hour_closeout_percent={snapshot['five_hour_closeout_percent']:g}"
+            f"five_hour_closeout_percent={snapshot['five_hour_closeout_percent']:g} "
+            f"effective_remaining_percent={snapshot.get('effective_remaining_percent')} "
+            f"weekly_equivalent_percent={snapshot.get('weekly_equivalent_percent')}"
         )
     return {"OK": 0, "CLOSEOUT": 10, "UNKNOWN": 20, "NOT_APPLICABLE": 0}[snapshot["quota"]]
 

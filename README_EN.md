@@ -2,11 +2,11 @@
 
 # New Eight Honors.skill
 
-### Give your agent a few working principles.
+### Give your Codex a little more humanity.
 
-**Proactive updates · Eight-point reviews · Quota closeout**
+**Clear words · Sound judgment · Work carried through**
 
-Built first for **Codex users**. Put your working standards in `AGENTS.md`.
+Built first for **Codex users**. Plan or API access, with habits you can choose.
 
 [Install](#install) · [Real work records](#what-the-work-looks-like) · [The eight principles](#the-eight-principles) · [中文首页](README.md)
 
@@ -16,6 +16,18 @@ Built first for **Codex users**. Put your working standards in `AGENTS.md`.
   <source media="(max-width: 600px)" srcset="assets/principles-mobile.png" />
   <img src="assets/principles-desktop.png" alt="New Eight Honors: the complete eight principles, shown as an agent's working agreements" width="960" />
 </picture>
+
+## How I want it to work with you
+
+My recent experience with native Codex has felt increasingly frustrating: confusing reports, blind execution, defensive answers, and allowance running out with work unfinished. I still find its ability to act on whole projects hard to replace, so I have spent more time on prompt engineering than I expected.
+
+**I want to give Codex a little more humanity:** understand the person, exercise judgment, take responsibility for finding a way forward, and explain the work clearly. These are the working habits this skill makes explicit.
+
+- **Clear communication:** less defensiveness, useful judgments and next steps.
+- **Independent problem-solving:** find better approaches and own routine decisions.
+- **Continuity:** choose reporting habits, match the real budget source, and leave work ready to continue.
+
+Choose connection, reporting frequency, and tone once during setup; adjust them later in your project.
 
 ## What the work looks like
 
@@ -28,13 +40,9 @@ The original wording, historical **27%**, **21:26** reset time, unfinished work,
 
 **ChatGPT plan users:** check the actual connection, read the plan allowance, and close out at the chosen reserve. **API and relay users:** choose API mode and use the provider's actual budget; the same collaboration and handoff principles apply. A previously signed-in Plus account's balance is separate from relay usage.
 
-The default **30%** five-hour reserve comes from the author's Plus workflow: leave room to inspect the result, give feedback, and revise over further turns. Set it to **10%** or another value that suits your work. Automatic wakeup needs a host scheduler; the recorded project explicitly says it had not been configured. [Quota and continuation](references/quota-and-recovery.md).
+Plan mode uses **`min(five-hour remaining %, weekly remaining % × 6)`** for the reserve decision. A weekly 2% becomes a five-hour-equivalent 12%. This is the author's budgeting heuristic; raw balances and reset times stay intact. The default reserve is **30%**, leaving room for review and revision; choose **10%** or another value if preferred. Automatic wakeup needs a host scheduler. [Quota and continuation](references/quota-and-recovery.md).
 
 ## The eight principles
-
-My recent experience with native Codex has felt increasingly frustrating: confusing reports, blind execution, defensive answers, and allowance running out with work unfinished. I still find its ability to act on whole projects hard to replace, so I have spent more time on prompt engineering than I expected.
-
-**I want to give Codex a little more humanity:** understand the person, exercise judgment, take responsibility for finding a way forward, and explain the work clearly. These are the working habits this skill makes explicit.
 
 The earlier AI coding “eight honors and eight shames” emphasized looking things up, confirming requirements, reusing code, and testing. This version keeps the memorable form and extends it to goals, judgment, real product use, and handoffs. [Background and sources](docs/provenance.md).
 
