@@ -6,7 +6,7 @@
 
 - [新版八条全文图](../assets/principles-desktop.png)：1160 × 1110，“Agent 上岗须知”风格，八耻与八荣对照。
 - [新版八条全文竖图](../assets/principles-mobile.png)：760 × 1500，八条逐条分行，适合手机阅读与小红书配图。
-- 完整报告由[正常正文](../assets/records/normal_report-mobile.png)和[末尾八条](../assets/records/eight_principles-mobile.png)连续展示；[额度上下文](../assets/records/quota_context-mobile.png)与[完整收尾](../assets/records/quota_closeout-mobile.png)保留真实时间顺序，均来自2026-10-29实际项目。分享时保留消息身份与编辑标记。
+- 完整报告由[正常正文](../assets/records/normal_report-mobile.png)和[末尾八条](../assets/records/eight_principles-mobile.png)连续展示；[额度上下文](../assets/records/quota_context-mobile.png)与[完整收尾](../assets/records/quota_closeout-mobile.png)保留真实时间顺序，均来自2026-10-29实际项目。聊天展示采用本机 Codex 界面样式复现；分享时保留原文与工具摘要的来源说明。
 - 同目录保留 SVG 源文件，文字可编辑，不必重新生成整张图。
 
 ## 标题候选

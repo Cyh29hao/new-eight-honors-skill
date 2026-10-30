@@ -16,7 +16,7 @@ The [Chinese homepage](README.md#实际工作会变成什么样) shows complete 
 - **A complete report:** results, six concrete findings, coverage gaps, allowance, and next steps come first. The eight-point explanation follows in the same reply. Both parts are displayed together.
 - **Closeout with context:** the report showed 33% remaining; subsequent live checks returned 31%, then 27% after checking 36 course modules. At the then-configured 30% reserve, the agent saved its progress and delivered a complete closeout report, including its eight-point explanation.
 
-The original wording, historical **27%**, **21:26** reset time, unfinished work, and continuation status remain. Only local filesystem paths are redacted. Assistant messages, tool summaries, and editorial labels are distinguished in the typeset records. [Read and copy the complete original records](docs/examples/real-work.md).
+The original wording, historical **27%**, **21:26** reset time, unfinished work, and continuation status remain. Only local filesystem paths are redacted. The records reproduce the local Codex chat layout; tool rows summarize the recorded tool results, and assistant messages retain their original wording. [Read and copy the complete original records](docs/examples/real-work.md).
 
 **Have Codex close out before its allowance runs out.** During long tasks, the skill directs it to check live allowance, save results at the reserve line, and explain unfinished work and the exact next step. Live quota queries require a working, signed-in Codex CLI.
 
